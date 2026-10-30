@@ -1,0 +1,30 @@
+# Dependencias y build
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secretos: solo se versiona .env.example
+.env*
+!.env.example
+
+# Supabase local
+supabase/.temp/
+supabase/.branches/
+
+# Pruebas e2e
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Claude Code y gentle-ai: estado local
+.claude/settings.local.json
+.atl/
+
+# Sistema
+.DS_Store
+Thumbs.db
+~$*

@@ -1,0 +1,58 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Estado del proyecto
+
+Plataforma **SaaS multiempresa de reservas** para cabañas, casas, departamentos, habitaciones y pequeños hoteles: Superadmin → Propietarios (organizaciones) → Establecimientos → Unidades. Fuente funcional: `Plan CHATGPT.docx` (relevamiento). Para leerlo: `unzip -p "Plan CHATGPT.docx" word/document.xml | sed -e 's/<\/w:p>/\n/g' -e 's/<[^>]*>//g'`. Análisis, decisiones y diseño aprobados en `docs/` (empezar por `docs/05-decisiones.md`).
+
+Fase actual: **Fase 0** — documentación lista; falta esqueleto Next.js, proyecto Supabase de desarrollo y despliegue de prueba. Todavía no hay `package.json`: cuando exista, agregar aquí los comandos reales (dev, build, lint, typecheck, test, test individual, migraciones, generación de tipos).
+
+Trabajar fase por fase y **detenerse para revisión al final de cada una**. Una fase termina cuando cumple su criterio de aceptación (`docs/04-plan-y-pruebas.md`), no cuando compila.
+
+## Alcance: MVP núcleo
+
+Incluido: Superadmin, planes y suscripciones con **cobro manual**, propietarios con colaboradores, establecimientos/categorías/unidades, motor de reservas y calendario, tarifas, pagos manuales de huéspedes (seña/saldo), página pública con SEO básico y WhatsApp (enlace).
+
+**Fuera del MVP (v1.1)** — no implementar sin aprobación: CRM/segmentación/promociones/remarketing, Google AdSense, gastos y reportes económicos, centro de notificaciones, API de WhatsApp, pasarelas de pago online, dominios propios por establecimiento, buscador general, traducciones.
+
+## Stack y entorno
+
+Next.js App Router + TypeScript (`output: 'standalone'`), Tailwind CSS, shadcn/ui, React Hook Form + Zod, Supabase (Postgres, Auth SSR con cookies, Storage, RLS, `pg_cron`), Vitest y Playwright. Una sola app Next.js; **no** agregar Express, Docker, Redis, colas ni microservicios sin aprobación. Español sin i18n. Mobile-first.
+
+- Hosting: **Hostinger Business** (Node.js). Sitio de prueba: `darkcyan-seahorse-806320.hostingersite.com`. Gestión vía MCP `hostinger-api`; nada sobre producción sin autorización.
+- Base de datos de desarrollo: **proyecto Supabase en la nube** separado de producción (no hay Docker, no usar `supabase start`). Migraciones versionadas en `supabase/migrations/`, aplicadas con `supabase db push`. Tipos con `supabase gen types` (no escribir tipos de tablas a mano). Pruebas de BD/RLS con Vitest contra el proyecto de desarrollo.
+- Gestor de paquetes: **npm** (no hay pnpm). Fijar versiones y commitear el lockfile.
+- Lógica de negocio en `src/modules/<dominio>/`, separada de los componentes; esquemas Zod compartidos entre formularios y server actions.
+
+## Invariantes que no se negocian
+
+- **Aislamiento por organización:** toda tabla de negocio lleva `org_id`; RLS habilitada en todas las tablas expuestas, con el patrón único `org_id in (select user_org_ids())` (función `STABLE SECURITY DEFINER`). Superadmin vía `is_platform_admin()` en las políticas; la `service_role` solo en servidor y solo para tareas internas. Operaciones del Superadmin quedan auditadas.
+- **Roles fijos:** `owner`, `admin`, `operator` (operador: calendario y reservas; sin tarifas, pagos sensibles ni configuración). No crear matriz de permisos configurable.
+- **Cuenta suspendida:** `org_is_active()` en las políticas → panel de solo lectura y página pública "no disponible".
+- **Anti-superposición en la base de datos:** reservas y bloqueos en la misma tabla, `EXCLUDE USING gist (unit_id WITH =, <rango bloqueado> WITH &&)` para estados que bloquean (provisional, confirmada, bloqueo). El intervalo de limpieza extiende el rango bloqueado (columna generada). Ocultar fechas en la UI no alcanza.
+- **Inventario de hoteles:** cada habitación es una unidad física; la categoría solo agrupa. Reservar por categoría = función que asigna la primera unidad libre capturando la violación de exclusión. No hay contadores de cupos.
+- **Fechas:** estadías como `DATE` local, salida exclusiva (10→13 ocupa noches 10, 11, 12). Timestamps en UTC + zona horaria del establecimiento.
+- **Vencimientos sin Node:** provisionales (6–12 h, configurable) con `expires_at`; `pg_cron` las vence periódicamente y la función de alta vence las caducadas de la unidad antes de insertar. Suscripciones: `pg_cron` diario (prueba → activa → vencida → suspendida). Nunca `setTimeout` ni cron de Hostinger para lógica crítica.
+- **Tarifas:** función TypeScript sin efectos secundarios que calcula noche por noche con prioridad explícita (base < temporada < fin de semana < feriado < fecha especial, salvo prioridad configurada). Se calcula en el servidor; el cliente nunca envía importes. Precio, desglose y seña se **congelan** en la reserva. Importes en enteros (centavos), moneda explícita (ARS).
+- **Circuitos económicos separados:** pagos de suscripciones ≠ pagos de huéspedes (≠ gastos y AdSense en v1.1).
+- Una consulta por WhatsApp no crea reservas. Imágenes en Supabase Storage (redimensionadas en el navegador), nunca en el disco de Hostinger. Panel y datos de huéspedes no indexables.
+
+## Skills y herramientas por tarea
+
+Skills en `.claude/skills/` (registrados en `skills-lock.json`; actualizar con `npx skills update -p`):
+
+- **Esquema, migraciones, RLS, índices, motor de reservas** → `supabase-postgres-best-practices` + `supabase`.
+- **React / Next.js** → `vercel-react-best-practices`.
+- **UI** → `shadcn`, `frontend-design` (dirección visual), `web-design-guidelines` (auditoría UI/accesibilidad).
+- **Pruebas** → `vitest` (tarifas, disponibilidad, vencimientos, RLS) y `playwright-best-practices` (e2e, móvil).
+- **SEO** → `seo-audit`. **Revisión** → `/code-review`, `/security-review`, agentes `review-*`, `judgment-day`. **Docs** → MCP Context7.
+- Hook `gga` (pre-commit) revisa `*.ts,*.tsx,*.js,*.jsx,*.sql` staged usando este archivo como reglas (`.gga`).
+
+## Forma de trabajo
+
+- Tareas chicas inline; subagentes solo para exploración amplia o verificación independiente. Revisión profunda (4R) solo en alto riesgo: migraciones/RLS, motor de reservas, suscripciones/suspensión, autenticación.
+- Prueba primero en reglas críticas: superposición y concurrencia, tarifas, vencimientos, aislamiento entre organizaciones.
+- No inventar reglas ni parámetros comerciales (precios/límites de planes, días de gracia, dominio, SMTP): proponer opciones y pedir decisión. Registrar decisiones en `docs/05-decisiones.md`.
+- No borrar tests ni debilitar tipos para que compile. Sin migraciones destructivas sin aprobación y plan de reversión. Datos ficticios y credenciales de prueba; nunca producción sin autorización. `.env*` fuera de Git (solo `.env.example`).
+- Al cerrar cada tarea: resumir archivos modificados, decisiones, pruebas ejecutadas y pendientes.
