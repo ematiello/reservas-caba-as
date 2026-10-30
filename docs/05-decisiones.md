@@ -18,6 +18,10 @@ Formato: fecha · decisión · motivo. Las decisiones nuevas se agregan al final
 | D12 | 2026-10-30 | Páginas públicas en `/{slug}` dentro del dominio de la plataforma, sin dominios propios en el MVP | Evita configurar SSL y DNS por cliente en hosting compartido |
 | D13 | 2026-10-30 | Se usa npm como gestor de paquetes | pnpm no está instalado |
 | D14 | 2026-10-30 | `gga` revisa los commits con `CLAUDE.md` como reglas (sin un `AGENTS.md` duplicado) | Una sola fuente de reglas |
+| D15 | 2026-10-30 | Se evaluó MySQL en Hostinger y **se mantiene Supabase**: plan gratuito en desarrollo y piloto, Supabase Pro con los primeros propietarios que pagan | MySQL obligaría a programar login, aislamiento entre organizaciones sin RLS, almacenamiento de archivos y tareas programadas: más trabajo y más riesgo de filtrar datos entre propietarios a cambio de ≈ US$25/mes |
+
+| D16 | 2026-10-30 | Next.js 16.4 + React 19.3, shadcn preset `base-nova` (Base UI), Zod 4, Vitest 5, Playwright 1.64. Todas las versiones fijadas exactas | Última versión estable al iniciar; versiones fijas para builds reproducibles (regla del skill de Supabase) |
+| D17 | 2026-10-30 | Se aceptan 3 avisos de severidad baja de `npm audit` (`deepmerge` dentro del CLI de `shadcn`) | Solo afecta herramientas de desarrollo y build; el "fix" sugerido es un downgrade a shadcn 1.0. Se revisa en cada actualización |
 
 ## Pendientes (decisión comercial del usuario)
 

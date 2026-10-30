@@ -6,7 +6,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Plataforma **SaaS multiempresa de reservas** para cabañas, casas, departamentos, habitaciones y pequeños hoteles: Superadmin → Propietarios (organizaciones) → Establecimientos → Unidades. Fuente funcional: `Plan CHATGPT.docx` (relevamiento). Para leerlo: `unzip -p "Plan CHATGPT.docx" word/document.xml | sed -e 's/<\/w:p>/\n/g' -e 's/<[^>]*>//g'`. Análisis, decisiones y diseño aprobados en `docs/` (empezar por `docs/05-decisiones.md`).
 
-Fase actual: **Fase 0** — documentación lista; falta esqueleto Next.js, proyecto Supabase de desarrollo y despliegue de prueba. Todavía no hay `package.json`: cuando exista, agregar aquí los comandos reales (dev, build, lint, typecheck, test, test individual, migraciones, generación de tipos).
+Fase actual: **Fase 0** — esqueleto local listo y verificado; faltan `supabase link` al proyecto dev (`uqgmtcmdaxruiwkawxxx`) y el despliegue de prueba en Hostinger.
+
+## Comandos
+
+```bash
+npm run dev                 # desarrollo (Turbopack)
+npm run lint                # ESLint
+npm run typecheck           # next typegen && tsc (LayoutProps/PageProps son tipos generados)
+npm test                    # Vitest (src/**/*.test.ts, tests/db/**/*.test.ts)
+npx vitest run src/lib/supabase/env.test.ts   # un archivo
+npx vitest run -t "fails fast"                 # un test por nombre
+npm run test:e2e            # Playwright: build + server standalone en :3100, móvil y escritorio
+npm run build               # build de producción (output: standalone)
+npm start                   # scripts/start-standalone.mjs: copia estáticos y arranca .next/standalone/server.js
+npx supabase migration new <nombre>   # nueva migración (nunca inventar el nombre del archivo)
+npx supabase db push        # aplica migraciones al proyecto linkeado (dev)
+npm run db:types            # regenera src/lib/supabase/database.types.ts
+```
+
+**Next.js 16.4** (ver `AGENTS.md`): leer la guía en `node_modules/next/dist/docs/` antes de usar una API. `middleware` ahora es `src/proxy.ts`; APIs de request asíncronas (`await cookies()`); `cacheComponents` activado.
+
+Supabase: claves **publishable/secret** (no `anon`/`service_role`). Clientes en `src/lib/supabase/` — `server.ts` (con sesión del usuario, RLS aplica), `client.ts` (navegador), `proxy.ts` (refresca la sesión solo en `/panel`, `/admin`, `/auth`; no autoriza). Autorizar siempre en la página/acción y en RLS, nunca solo en el proxy.
 
 Trabajar fase por fase y **detenerse para revisión al final de cada una**. Una fase termina cuando cumple su criterio de aceptación (`docs/04-plan-y-pruebas.md`), no cuando compila.
 

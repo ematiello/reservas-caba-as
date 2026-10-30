@@ -56,15 +56,16 @@ No hay Docker, así que no se usa `supabase start`. El flujo es:
 
 ## Variables de entorno (`.env.example`, sin valores)
 
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`: públicas.
-- `SUPABASE_SERVICE_ROLE_KEY`: **solo servidor**, nunca con el prefijo `NEXT_PUBLIC_`.
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`): públicas.
+- `SUPABASE_SECRET_KEY` (`sb_secret_…`): **solo servidor**, nunca con el prefijo `NEXT_PUBLIC_`. Reemplaza a la `service_role` heredada.
 - `NEXT_PUBLIC_SITE_URL`: para canonical, sitemap y Open Graph.
-- Pruebas de base de datos: `SUPABASE_TEST_URL` y las claves del proyecto dev (nunca de producción).
+- `PORT` (lo define Hostinger) y `BIND_HOST` (opcional, por defecto `0.0.0.0`).
+- Pruebas de base de datos: claves del proyecto dev (nunca de producción).
 
 ## Despliegue en Hostinger (se valida en la Fase 0)
 
 1. En `next.config`, `output: 'standalone'` e imágenes servidas ya optimizadas desde Supabase Storage, sin optimización en el servidor.
-2. Conectar el repositorio de GitHub al sitio Node.js desde hPanel. Ahí se verifican la versión de Node, los comandos de install, build y start, y el puerto.
+2. Conectar el repositorio de GitHub al sitio Node.js desde hPanel. Ahí se verifican la versión de Node (≥ 22; en desarrollo se usa 24) y el puerto. Comandos: install `npm ci`, build `npm run build`, start `npm start`. `npm start` ejecuta `scripts/start-standalone.mjs`, que copia `public/` y `.next/static/` dentro del standalone y escucha en `0.0.0.0:$PORT`. Fijar la IP de escucha es necesario porque muchos hosts definen `HOSTNAME` con el nombre de la máquina, y el `server.js` de Next la usaría para escuchar.
 3. Cargar las variables de entorno en hPanel y comprobar cuáles están disponibles en build y cuáles en runtime.
 4. Verificar que `/` y `/api/health` respondan, y que `/api/health` consulte Supabase sin exponer claves.
 5. Registrar los límites observados (memoria y tiempo de build). Si el build no entra en el plan compartido, la alternativa es compilar en GitHub Actions y desplegar el artefacto, o pasar a VPS.
