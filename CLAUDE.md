@@ -41,7 +41,7 @@ Incluido: Superadmin, planes y suscripciones con **cobro manual**, propietarios 
 
 Next.js App Router + TypeScript (`output: 'standalone'`), Tailwind CSS, shadcn/ui, React Hook Form + Zod, Supabase (Postgres, Auth SSR con cookies, Storage, RLS, `pg_cron`), Vitest y Playwright. Una sola app Next.js; **no** agregar Express, Docker, Redis, colas ni microservicios sin aprobación. Español sin i18n. Mobile-first.
 
-- Hosting: **Hostinger Business** (Node.js). Sitio de prueba: `darkcyan-seahorse-806320.hostingersite.com`. Gestión vía MCP `hostinger-api`; nada sobre producción sin autorización.
+- Hosting: **Hostinger Business** (Node.js). Sitio de prueba: `violet-quail-122403.hostingersite.com`. Gestión vía MCP `hostinger-api`; nada sobre producción sin autorización.
 - Base de datos de desarrollo: **proyecto Supabase en la nube** separado de producción (no hay Docker, no usar `supabase start`). Migraciones versionadas en `supabase/migrations/`, aplicadas con `supabase db push`. Tipos con `supabase gen types` (no escribir tipos de tablas a mano). Pruebas de BD/RLS con Vitest contra el proyecto de desarrollo.
 - Gestor de paquetes: **npm** (no hay pnpm). Fijar versiones y commitear el lockfile.
 - Lógica de negocio en `src/modules/<dominio>/`, separada de los componentes; esquemas Zod compartidos entre formularios y server actions.
