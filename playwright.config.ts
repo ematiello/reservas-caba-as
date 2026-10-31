@@ -11,6 +11,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // Pages stream in behind Suspense and read from a remote Supabase project: 5 s is too tight.
+  expect: { timeout: 15_000 },
   use: {
     baseURL: `http://localhost:${port}`,
     trace: "on-first-retry",

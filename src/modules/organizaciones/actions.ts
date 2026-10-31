@@ -1,14 +1,16 @@
 "use server";
 
 import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
 import { safeNext } from "./redirect";
 import { completePendingRegistration } from "./registration";
 import { createOrganizationSchema, loginSchema, registerSchema } from "./schemas";
-import { requireUser } from "./session";
+import { requirePlatformAdmin, requireUser } from "./session";
 
 export type FormState = {
   error?: string;
@@ -117,6 +119,26 @@ export async function createOrganizationAction(_prev: FormState, formData: FormD
       : { error: "No pudimos registrar el negocio. Intentá de nuevo.", values: raw };
   }
   redirect("/panel");
+}
+
+const reviewSchema = z.object({
+  orgId: z.uuid(),
+  decision: z.enum(["approve", "reject"]),
+});
+
+// Superadmin only: the check here and `review_organization()` (SECURITY DEFINER, checks
+// `is_platform_admin()`) are independent, so a forged request fails in both places.
+export async function reviewOrganizationAction(formData: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const parsed = reviewSchema.safeParse({ orgId: text(formData, "orgId"), decision: text(formData, "decision") });
+  if (!parsed.success) return;
+
+  const supabase = await createClient();
+  await supabase.rpc("review_organization", {
+    p_org: parsed.data.orgId,
+    p_approve: parsed.data.decision === "approve",
+  });
+  revalidatePath("/admin");
 }
 
 export async function logoutAction(): Promise<void> {

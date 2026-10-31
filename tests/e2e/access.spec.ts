@@ -28,6 +28,8 @@ test.describe("signed-in users", () => {
   let admin: SupabaseClient;
   let owner: TestUser;
   let superadmin: TestUser;
+  // Unique per run: the mobile and desktop projects share the same dev database.
+  const orgName = `Cabañas E2E ${uniqueSlug("n")}`;
 
   async function login(page: Page, user: TestUser, next: string) {
     await page.goto(`/auth/login?next=${encodeURIComponent(next)}`);
@@ -57,7 +59,7 @@ test.describe("signed-in users", () => {
     await login(page, owner, "/panel");
     await expect(page.getByText("Todavía no tenés un negocio")).toBeVisible();
 
-    await page.getByLabel("Nombre de tu negocio").fill("Cabañas E2E");
+    await page.getByLabel("Nombre de tu negocio").fill(orgName);
     await page.getByLabel(/Dirección pública/).fill(uniqueSlug("e2e"));
     await page.getByRole("button", { name: "Registrar mi negocio" }).click();
 
@@ -70,16 +72,20 @@ test.describe("signed-in users", () => {
     await expect(page.getByText("Solicitudes de organizaciones")).toHaveCount(0);
   });
 
-  test("a platform admin reaches /admin", async ({ page }) => {
+  test("a platform admin sees the pending request and approves it", async ({ page }) => {
     await login(page, superadmin, "/admin");
-    await expect(page.getByText("Solicitudes de organizaciones")).toBeVisible();
+    await expect(page.getByText(/Solicitudes de organizaciones/)).toBeVisible();
+    await expect(page.getByText(orgName)).toBeVisible();
+
+    await page.getByRole("button", { name: `Aprobar ${orgName}` }).click();
+    await expect(page.getByRole("button", { name: `Aprobar ${orgName}` })).toHaveCount(0);
+    await expect(page.getByText(orgName)).toBeVisible(); // now listed under "Activas"
+
+    const { data } = await admin.from("organizations").select("status, approved_by").eq("name", orgName).single();
+    expect(data).toEqual({ status: "active", approved_by: superadmin.id });
   });
 
   test("once approved, the owner sees the active panel", async ({ page }) => {
-    const { data } = await admin.from("memberships").select("org_id").eq("user_id", owner.id).single();
-    const review = await superadmin.client.rpc("review_organization", { p_org: data?.org_id, p_approve: true });
-    expect(review.error).toBeNull();
-
     await login(page, owner, "/panel");
     await expect(page.getByText("Tu cuenta está activa")).toBeVisible();
   });
