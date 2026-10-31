@@ -85,6 +85,26 @@ test.describe("signed-in users", () => {
     expect(data).toEqual({ status: "active", approved_by: superadmin.id });
   });
 
+  test("a platform admin rejects a request and the applicant sees it", async ({ page }) => {
+    const applicant = await createTestUser(admin, "e2erejected");
+    const rejectedName = `Rechazada E2E ${uniqueSlug("r")}`;
+    const created = await applicant.client.rpc("register_organization", { p_name: rejectedName, p_slug: uniqueSlug("rej") });
+    expect(created.error).toBeNull();
+    try {
+      await login(page, superadmin, "/admin");
+      await page.getByRole("button", { name: `Rechazar ${rejectedName}` }).click();
+      await expect(page.getByRole("button", { name: `Rechazar ${rejectedName}` })).toHaveCount(0);
+
+      await page.getByRole("button", { name: "Salir" }).click();
+      await login(page, applicant, "/panel");
+      await expect(page.getByText("Tu solicitud no fue aprobada")).toBeVisible();
+    } finally {
+      await admin.from("audit_log").delete().eq("org_id", created.data as string);
+      await admin.from("organizations").delete().eq("id", created.data as string);
+      await admin.auth.admin.deleteUser(applicant.id);
+    }
+  });
+
   test("once approved, the owner sees the active panel", async ({ page }) => {
     await login(page, owner, "/panel");
     await expect(page.getByText("Tu cuenta está activa")).toBeVisible();

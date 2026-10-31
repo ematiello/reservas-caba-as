@@ -74,13 +74,18 @@ function Section({
   );
 }
 
-async function AdminContent() {
+async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchParams">) {
   const access = await requirePlatformAdmin();
-  const orgs = await listOrganizationsForAdmin();
+  const [orgs, query] = await Promise.all([listOrganizationsForAdmin(), searchParams]);
 
   return (
     <AppShell title="Administración" email={access.user.email} showPanelLink>
       <div className="grid gap-6">
+        {query.error === "revision" ? (
+          <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+            No se pudo registrar la decisión: la solicitud ya fue revisada o no existe. La lista está actualizada.
+          </p>
+        ) : null}
         <Section
           title="Solicitudes de organizaciones"
           description="Negocios que esperan aprobación."
@@ -95,10 +100,10 @@ async function AdminContent() {
   );
 }
 
-export default function AdminPage() {
+export default function AdminPage(props: PageProps<"/admin">) {
   return (
     <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">Cargando…</p>}>
-      <AdminContent />
+      <AdminContent searchParams={props.searchParams} />
     </Suspense>
   );
 }

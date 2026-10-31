@@ -158,11 +158,14 @@ export async function reviewOrganizationAction(formData: FormData): Promise<void
   if (!parsed.success) return;
 
   const supabase = await createClient();
-  await supabase.rpc("review_organization", {
+  const { error } = await supabase.rpc("review_organization", {
     p_org: parsed.data.orgId,
     p_approve: parsed.data.decision === "approve",
   });
+  // e.g. already reviewed by someone else: tell the admin instead of failing silently.
+  if (error) redirect("/admin?error=revision");
   revalidatePath("/admin");
+  redirect("/admin");
 }
 
 export async function logoutAction(): Promise<void> {
