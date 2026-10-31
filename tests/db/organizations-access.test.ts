@@ -92,6 +92,23 @@ describe.skipIf(skipDb)("organizations and access (RLS)", () => {
     for (const user of users) await admin.auth.admin.deleteUser(user.id);
   });
 
+  describe("profiles", () => {
+    it("creates a profile from the signup metadata; members see each other but not other orgs", async () => {
+      const { data } = await ownerA.client.from("profiles").select("user_id, full_name");
+      const ids = data?.map((p) => p.user_id).sort();
+      expect(ids).toEqual([ownerA.id, operatorA.id].sort());
+      expect(data?.find((p) => p.user_id === ownerA.id)?.full_name).toBe("Test ownera");
+    });
+
+    it("lets a user update their own profile but not someone else's", async () => {
+      const own = await ownerA.client.from("profiles").update({ full_name: "Renamed" }).eq("user_id", ownerA.id).select();
+      expect(own.data?.[0]?.full_name).toBe("Renamed");
+      await ownerA.client.from("profiles").update({ full_name: "Hacked" }).eq("user_id", ownerB.id);
+      const { data } = await admin.from("profiles").select("full_name").eq("user_id", ownerB.id).single();
+      expect(data?.full_name).toBe("Test ownerb");
+    });
+  });
+
   describe("registration and review", () => {
     it("creates the org as pending_approval with the caller as owner", async () => {
       const org = await register(outsider, "pend");
