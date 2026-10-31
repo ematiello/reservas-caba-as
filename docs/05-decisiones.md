@@ -23,6 +23,8 @@ Formato: fecha · decisión · motivo. Las decisiones nuevas se agregan al final
 | D16 | 2026-10-30 | Next.js 16.4 + React 19.3, shadcn preset `base-nova` (Base UI), Zod 4, Vitest 5, Playwright 1.64. Todas las versiones fijadas exactas | Última versión estable al iniciar; versiones fijas para builds reproducibles (regla del skill de Supabase) |
 | D17 | 2026-10-30 | Se aceptan 3 avisos de severidad baja de `npm audit` (`deepmerge` dentro del CLI de `shadcn`) | Solo afecta herramientas de desarrollo y build; el "fix" sugerido es un downgrade a shadcn 1.0. Se revisa en cada actualización |
 
+| D18 | 2026-10-30 | MCP oficial de Supabase (`mcp.supabase.com`, OAuth) a nivel proyecto, fijado al proyecto dev y en `read_only=true` | Los agentes pueden consultar esquema, logs y advisors sin poder modificar la base; los cambios quedan versionados como migraciones (D4) |
+
 ## Pendientes (decisión comercial del usuario)
 
 - Precio y límites de cada plan (unidades y colaboradores).

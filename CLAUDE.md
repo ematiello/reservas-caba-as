@@ -67,6 +67,7 @@ Skills en `.claude/skills/` (registrados en `skills-lock.json`; actualizar con `
 - **React / Next.js** → `vercel-react-best-practices`.
 - **UI** → `shadcn`, `frontend-design` (dirección visual), `web-design-guidelines` (auditoría UI/accesibilidad).
 - **Pruebas** → `vitest` (tarifas, disponibilidad, vencimientos, RLS) y `playwright-best-practices` (e2e, móvil).
+- **Inspeccionar la BD de desarrollo** → MCP `supabase` (`.mcp.json`): fijado a `uqgmtcmdaxruiwkawxxx` y en `read_only`. Sirve para leer esquema, logs y advisors y para consultas. Los cambios de esquema van siempre por migraciones con la CLI. Nunca apuntarlo a producción.
 - **SEO** → `seo-audit`. **Revisión** → `/code-review`, `/security-review`, agentes `review-*`, `judgment-day`. **Docs** → MCP Context7.
 - Hook `gga` (pre-commit) revisa `*.ts,*.tsx,*.js,*.jsx,*.sql` staged usando este archivo como reglas (`.gga`).
 
