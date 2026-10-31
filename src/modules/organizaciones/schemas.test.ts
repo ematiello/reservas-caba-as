@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { loginSchema, registerSchema, slugify } from "./schemas";
+import {
+  invitationRoleSchema,
+  loginSchema,
+  registerCollaboratorSchema,
+  registerSchema,
+  slugify,
+} from "./schemas";
 
 const valid = {
   fullName: "Ana Pérez",
@@ -59,6 +65,31 @@ describe("registerSchema", () => {
   it("trims names and rejects empty ones", () => {
     expect(registerSchema.safeParse({ ...valid, fullName: "   " }).success).toBe(false);
     expect(registerSchema.safeParse({ ...valid, orgName: "" }).success).toBe(false);
+  });
+});
+
+describe("registerCollaboratorSchema", () => {
+  it("needs only name, email and password (no business)", () => {
+    const result = registerCollaboratorSchema.safeParse({
+      fullName: "Luis Gómez",
+      email: "Luis@Example.com",
+      password: "una-clave-larga",
+    });
+    expect(result.success && result.data.email).toBe("luis@example.com");
+  });
+
+  it("applies the same password and name rules", () => {
+    const base = { fullName: "Luis Gómez", email: "luis@example.com", password: "una-clave-larga" };
+    expect(registerCollaboratorSchema.safeParse({ ...base, password: "corta" }).success).toBe(false);
+    expect(registerCollaboratorSchema.safeParse({ ...base, fullName: " " }).success).toBe(false);
+  });
+});
+
+describe("invitationRoleSchema", () => {
+  it("accepts admin and operator, never owner", () => {
+    expect(invitationRoleSchema.safeParse("admin").success).toBe(true);
+    expect(invitationRoleSchema.safeParse("operator").success).toBe(true);
+    expect(invitationRoleSchema.safeParse("owner").success).toBe(false);
   });
 });
 

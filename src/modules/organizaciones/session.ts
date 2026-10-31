@@ -72,6 +72,14 @@ export async function requirePanelAccess(): Promise<{ access: Access; state: Pan
   return { access, state: resolvePanelState(access.memberships) };
 }
 
+// Team management: the owner of an active organization. Anyone else goes back to /panel.
+// The organization always comes from the caller's own memberships, never from form input.
+export async function requireOwnerAccess(): Promise<{ access: Access; org: OrgMembership }> {
+  const { access, state } = await requirePanelAccess();
+  if (state.kind !== "active" || state.membership.role !== "owner") redirect("/panel");
+  return { access, org: state.membership };
+}
+
 // Superadmin area. A signed-in user who is not a platform admin gets a 404 so the route is not revealed.
 export async function requirePlatformAdmin(): Promise<Access> {
   const access = await requireUser("/admin");

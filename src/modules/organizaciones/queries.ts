@@ -14,6 +14,43 @@ export type AdminOrganization = {
   ownerName: string;
 };
 
+export type TeamMember = { userId: string; fullName: string; role: "owner" | "admin" | "operator" };
+export type PendingInvitation = { id: string; role: "admin" | "operator"; expiresAt: string };
+
+// Members and open invitations of one organization. RLS limits members to the caller's own
+// organizations and invitations to owners; callers are still gated by `requireOwnerAccess()`.
+export async function getTeam(orgId: string): Promise<{ members: TeamMember[]; invitations: PendingInvitation[] }> {
+  const supabase = await createClient();
+
+  const [membersRes, invitationsRes] = await Promise.all([
+    supabase.from("memberships").select("user_id, role").eq("org_id", orgId).order("created_at"),
+    supabase
+      .from("invitations")
+      .select("id, role, expires_at")
+      .eq("org_id", orgId)
+      .is("accepted_at", null)
+      .is("revoked_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .order("created_at", { ascending: false }),
+  ]);
+  if (membersRes.error || invitationsRes.error) throw new Error("Could not load the team");
+
+  const ids = membersRes.data.map((m) => m.user_id);
+  const { data: profiles } = ids.length
+    ? await supabase.from("profiles").select("user_id, full_name").in("user_id", ids)
+    : { data: [] };
+  const names = new Map((profiles ?? []).map((p) => [p.user_id, p.full_name]));
+
+  return {
+    members: membersRes.data.map((m) => ({ userId: m.user_id, fullName: names.get(m.user_id) || "—", role: m.role })),
+    invitations: invitationsRes.data.map((i) => ({
+      id: i.id,
+      role: i.role as PendingInvitation["role"],
+      expiresAt: i.expires_at,
+    })),
+  };
+}
+
 // Platform-admin view of every organization. RLS (`is_platform_admin()`) is what allows this read;
 // callers must still be gated by `requirePlatformAdmin()`.
 export async function listOrganizationsForAdmin(): Promise<AdminOrganization[]> {

@@ -1,15 +1,15 @@
 "use server";
 
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { siteOrigin } from "./origin";
 import { safeNext } from "./redirect";
 import { completePendingRegistration } from "./registration";
-import { createOrganizationSchema, loginSchema, registerSchema } from "./schemas";
+import { createOrganizationSchema, loginSchema, registerCollaboratorSchema, registerSchema } from "./schemas";
 import { requirePlatformAdmin, requireUser } from "./session";
 
 export type FormState = {
@@ -23,14 +23,6 @@ export type FormState = {
 function text(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
-}
-
-async function siteOrigin(): Promise<string> {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  return `${proto}://${h.get("host")}`;
 }
 
 export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -72,6 +64,38 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   return {
     notice: "Te enviamos un email para confirmar tu cuenta. Al confirmarlo, un administrador revisará tu solicitud.",
   };
+}
+
+// Account for someone invited to an existing business: no organization is created. `next` brings
+// them back to the invitation link after confirming their email.
+export async function registerCollaboratorAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const raw = {
+    fullName: text(formData, "fullName"),
+    email: text(formData, "email"),
+    password: text(formData, "password"),
+  };
+  const values = { fullName: raw.fullName, email: raw.email };
+  const next = safeNext(text(formData, "next"));
+
+  const parsed = registerCollaboratorSchema.safeParse(raw);
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors, values };
+  const { fullName, email, password } = parsed.data;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: `${await siteOrigin()}/auth/confirm?next=${encodeURIComponent(next)}`,
+    },
+  });
+  if (error) {
+    return { error: "No pudimos crear la cuenta. Revisá los datos e intentá de nuevo.", values };
+  }
+  if (data.session) redirect(next);
+
+  return { notice: "Te enviamos un email para confirmar tu cuenta. Al confirmarlo, volvé a abrir el enlace de invitación." };
 }
 
 export async function loginAction(_prev: FormState, formData: FormData): Promise<FormState> {

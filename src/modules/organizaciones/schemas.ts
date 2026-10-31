@@ -34,6 +34,20 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Ingresá tu contraseña."),
 });
 
+const fullName = z.string().trim().min(2, "Ingresá tu nombre.").max(120, "El nombre es demasiado largo.");
+
+// 72 is bcrypt's input limit: longer passwords would be silently truncated.
+const newPassword = z
+  .string()
+  .min(8, "La contraseña debe tener al menos 8 caracteres.")
+  .max(72, "La contraseña no puede superar los 72 caracteres.");
+
+// A collaborator joins an existing business through an invitation link, so no business is created.
+export const registerCollaboratorSchema = z.object({ fullName, email, password: newPassword });
+
+// Collaborator roles an owner can grant. `owner` is never invitable (also enforced in the database).
+export const invitationRoleSchema = z.enum(["admin", "operator"]);
+
 const orgFields = {
   orgName: z
     .string()
@@ -60,13 +74,9 @@ function withResolvedSlug<T extends { slug: string; orgName: string }>(value: T,
 
 export const registerSchema = z
   .object({
-    fullName: z.string().trim().min(2, "Ingresá tu nombre.").max(120, "El nombre es demasiado largo."),
+    fullName,
     email,
-    // 72 is bcrypt's input limit: longer passwords would be silently truncated.
-    password: z
-      .string()
-      .min(8, "La contraseña debe tener al menos 8 caracteres.")
-      .max(72, "La contraseña no puede superar los 72 caracteres."),
+    password: newPassword,
     ...orgFields,
   })
   .transform(withResolvedSlug);
