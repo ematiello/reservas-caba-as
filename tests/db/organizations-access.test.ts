@@ -13,7 +13,18 @@ import {
 
 // Phase 1 invariants 4 and 5 (docs/03): org isolation and operator limits.
 // Runs against the dev Supabase project with throwaway users and organizations.
-describe.skipIf(!hasDbEnv)("organizations and access (RLS)", () => {
+//
+// Missing credentials must fail the run: skipping silently would let the isolation gate pass with
+// zero assertions. Skipping is only possible by opting out explicitly with SKIP_DB_TESTS=1.
+const skipDb = process.env.SKIP_DB_TESTS === "1";
+if (!hasDbEnv && !skipDb) {
+  throw new Error(
+    "DB tests need NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and SUPABASE_SECRET_KEY " +
+      "(dev project, see .env.example). Set SKIP_DB_TESTS=1 to skip them on purpose.",
+  );
+}
+
+describe.skipIf(skipDb)("organizations and access (RLS)", () => {
   let admin: SupabaseClient;
   const users: TestUser[] = [];
   const orgIds: string[] = [];
