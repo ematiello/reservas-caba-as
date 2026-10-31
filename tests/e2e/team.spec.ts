@@ -1,12 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { adminClient, createTestUser, hasDbEnv, uniqueSlug, type TestUser } from "../db/helpers";
+import { adminClient, assertDbEnv, createTestUser, skipDbTests, uniqueSlug, type TestUser } from "../db/helpers";
 
 // Phase 1, S8: collaborators join through an invitation link shared by the owner (no SMTP).
 
 test.describe("invitation links", () => {
-  test.skip(!hasDbEnv, "needs the dev Supabase keys in .env.local");
+  assertDbEnv();
+  test.skip(skipDbTests, "SKIP_DB_TESTS=1");
   test.describe.configure({ mode: "serial" });
 
   let admin: SupabaseClient;

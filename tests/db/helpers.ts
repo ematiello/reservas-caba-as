@@ -8,6 +8,19 @@ const secretKey = process.env.SUPABASE_SECRET_KEY;
 
 export const hasDbEnv = Boolean(url && publishableKey && secretKey);
 
+export const skipDbTests = process.env.SKIP_DB_TESTS === "1";
+
+// Missing credentials must fail the run, never skip silently (a green run with zero assertions
+// hides a broken isolation gate). The only way to skip is the explicit SKIP_DB_TESTS=1.
+export function assertDbEnv(): void {
+  if (!hasDbEnv && !skipDbTests) {
+    throw new Error(
+      "DB-backed tests need NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY and " +
+        "SUPABASE_SECRET_KEY (dev project, see .env.example). Set SKIP_DB_TESTS=1 to skip them on purpose.",
+    );
+  }
+}
+
 const options = { auth: { persistSession: false, autoRefreshToken: false } };
 
 /** Bypasses RLS: only for test setup and cleanup, never for assertions. */
