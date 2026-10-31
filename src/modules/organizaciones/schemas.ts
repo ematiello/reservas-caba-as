@@ -84,5 +84,17 @@ export const registerSchema = z
 // For a signed-in user who has no organization yet (e.g. the slug was taken at registration).
 export const createOrganizationSchema = z.object(orgFields).transform(withResolvedSlug);
 
+// The business name and slug travel in the user's signup metadata, which the user controls:
+// run them through the same rules as the form before they reach the database.
+export function orgFromMetadata(meta: unknown): { orgName: string; slug: string } | null {
+  if (typeof meta !== "object" || meta === null) return null;
+  const { org_name, org_slug } = meta as Record<string, unknown>;
+  const parsed = createOrganizationSchema.safeParse({
+    orgName: typeof org_name === "string" ? org_name : "",
+    slug: typeof org_slug === "string" ? org_slug : "",
+  });
+  return parsed.success ? parsed.data : null;
+}
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

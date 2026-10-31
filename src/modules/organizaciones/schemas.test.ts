@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   invitationRoleSchema,
   loginSchema,
+  orgFromMetadata,
   registerCollaboratorSchema,
   registerSchema,
   slugify,
@@ -65,6 +66,28 @@ describe("registerSchema", () => {
   it("trims names and rejects empty ones", () => {
     expect(registerSchema.safeParse({ ...valid, fullName: "   " }).success).toBe(false);
     expect(registerSchema.safeParse({ ...valid, orgName: "" }).success).toBe(false);
+  });
+});
+
+describe("orgFromMetadata", () => {
+  it("validates the signup metadata with the same rules as the form", () => {
+    expect(orgFromMetadata({ org_name: "Cabañas del Río", org_slug: "" })).toEqual({
+      orgName: "Cabañas del Río",
+      slug: "cabanas-del-rio",
+    });
+    expect(orgFromMetadata({ org_name: "Mi Casa", org_slug: "Mi Casa" })?.slug).toBe("mi-casa");
+  });
+
+  it.each([
+    undefined,
+    null,
+    {},
+    { org_name: 42, org_slug: "x" },
+    { org_name: "", org_slug: "" },
+    { org_name: "Negocio", org_slug: "admin" },
+    { org_name: "x".repeat(121), org_slug: "" },
+  ])("returns null for unusable metadata %j", (meta) => {
+    expect(orgFromMetadata(meta)).toBeNull();
   });
 });
 

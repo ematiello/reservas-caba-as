@@ -35,6 +35,10 @@ export const getAccess = cache(async (): Promise<Access | null> => {
       .order("created_at"),
   ]);
 
+  // A failed query must not look like "no data": an owner would be sent to the create-business
+  // screen and a platform admin to a 404. Fail loudly instead.
+  if (admin.error || memberships.error) throw new Error("Could not load the session access data");
+
   const rows: OrgMembership[] = (memberships.data ?? []).flatMap((row) =>
     row.organizations
       ? [
