@@ -19,7 +19,7 @@ export function anonClient(): SupabaseClient {
   return createClient(url!, publishableKey!, options);
 }
 
-export type TestUser = { id: string; email: string; client: SupabaseClient };
+export type TestUser = { id: string; email: string; password: string; client: SupabaseClient };
 
 export async function createTestUser(admin: SupabaseClient, label: string): Promise<TestUser> {
   const email = `rls-${label}-${randomBytes(4).toString("hex")}@example.com`;
@@ -34,7 +34,7 @@ export async function createTestUser(admin: SupabaseClient, label: string): Prom
   const client = anonClient();
   const signedIn = await client.auth.signInWithPassword({ email, password });
   if (signedIn.error) throw signedIn.error;
-  return { id: created.data.user.id, email, client };
+  return { id: created.data.user.id, email, password, client };
 }
 
 export function newToken(): { token: string; hash: string } {

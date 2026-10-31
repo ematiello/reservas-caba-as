@@ -7,7 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 
 import { safeNext } from "./redirect";
 import { completePendingRegistration } from "./registration";
-import { loginSchema, registerSchema } from "./schemas";
+import { createOrganizationSchema, loginSchema, registerSchema } from "./schemas";
+import { requireUser } from "./session";
 
 export type FormState = {
   error?: string;
@@ -92,6 +93,30 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
 
   await completePendingRegistration(supabase);
   redirect(safeNext(text(formData, "next")));
+}
+
+export async function createOrganizationAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const access = await requireUser("/panel");
+  // Only users without an organization can start a new registration from here.
+  if (access.memberships.length > 0) redirect("/panel");
+
+  const raw = { orgName: text(formData, "orgName"), slug: text(formData, "slug") };
+  const parsed = createOrganizationSchema.safeParse(raw);
+  if (!parsed.success) {
+    return { fieldErrors: parsed.error.flatten().fieldErrors, values: raw };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("register_organization", {
+    p_name: parsed.data.orgName,
+    p_slug: parsed.data.slug,
+  });
+  if (error) {
+    return error.code === "23505"
+      ? { fieldErrors: { slug: ["Esa dirección ya está en uso. Elegí otra."] }, values: raw }
+      : { error: "No pudimos registrar el negocio. Intentá de nuevo.", values: raw };
+  }
+  redirect("/panel");
 }
 
 export async function logoutAction(): Promise<void> {

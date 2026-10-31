@@ -1,20 +1,71 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { Button } from "@/components/ui/button";
-import { logoutAction } from "@/modules/organizaciones/actions";
+import { AppShell } from "@/components/shell/app-shell";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { requirePanelAccess } from "@/modules/organizaciones/session";
+
+import { CreateOrganizationForm } from "./create-organization-form";
 
 export const metadata: Metadata = { title: "Panel" };
 
-// Placeholder for T3 (signed-in landing). T4 adds the server-side access check and real content.
+async function PanelContent() {
+  // Authorize here, next to the data: layouts do not re-run on client navigation.
+  const { access, state } = await requirePanelAccess();
+
+  return (
+    <AppShell title="Panel" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+      {state.kind === "no_org" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Registrá tu negocio</CardTitle>
+            <CardDescription>Todavía no tenés un negocio asociado a tu cuenta.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CreateOrganizationForm />
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {state.kind === "pending" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Tu solicitud está en revisión</CardTitle>
+            <CardDescription>
+              Estamos revisando «{state.membership.orgName}». Cuando la aprobemos vas a poder usar el panel.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+
+      {state.kind === "rejected" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Tu solicitud no fue aprobada</CardTitle>
+            <CardDescription>
+              La solicitud de «{state.membership.orgName}» fue rechazada. Si creés que es un error, contactá al
+              administrador de la plataforma.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+
+      {state.kind === "active" ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>{state.membership.orgName}</CardTitle>
+            <CardDescription>Tu cuenta está activa. Próximamente: establecimientos y reservas.</CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
+    </AppShell>
+  );
+}
+
 export default function PanelPage() {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-4 px-4 py-10">
-      <h1 className="text-2xl font-semibold">Panel</h1>
-      <form action={logoutAction}>
-        <Button type="submit" variant="outline">
-          Salir
-        </Button>
-      </form>
-    </main>
+    <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">Cargando…</p>}>
+      <PanelContent />
+    </Suspense>
   );
 }

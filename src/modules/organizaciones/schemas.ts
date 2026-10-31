@@ -34,6 +34,30 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Ingresá tu contraseña."),
 });
 
+const orgFields = {
+  orgName: z
+    .string()
+    .trim()
+    .min(2, "Ingresá el nombre de tu negocio.")
+    .max(120, "El nombre del negocio es demasiado largo."),
+  slug: z.string().trim().default(""),
+};
+
+// The public address comes from the explicit slug or, if empty, from the business name.
+function withResolvedSlug<T extends { slug: string; orgName: string }>(value: T, ctx: z.RefinementCtx): T {
+  const slug = slugify(value.slug || value.orgName);
+  if (slug.length < 3 || !SLUG_PATTERN.test(slug)) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["slug"],
+      message: "La dirección pública debe tener al menos 3 letras o números.",
+    });
+  } else if ((RESERVED_SLUGS as readonly string[]).includes(slug)) {
+    ctx.addIssue({ code: "custom", path: ["slug"], message: "Esa dirección está reservada. Elegí otra." });
+  }
+  return { ...value, slug };
+}
+
 export const registerSchema = z
   .object({
     fullName: z.string().trim().min(2, "Ingresá tu nombre.").max(120, "El nombre es demasiado largo."),
@@ -43,26 +67,12 @@ export const registerSchema = z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres.")
       .max(72, "La contraseña no puede superar los 72 caracteres."),
-    orgName: z
-      .string()
-      .trim()
-      .min(2, "Ingresá el nombre de tu negocio.")
-      .max(120, "El nombre del negocio es demasiado largo."),
-    slug: z.string().trim().default(""),
+    ...orgFields,
   })
-  .transform((value, ctx) => {
-    const slug = slugify(value.slug || value.orgName);
-    if (slug.length < 3 || !SLUG_PATTERN.test(slug)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["slug"],
-        message: "La dirección pública debe tener al menos 3 letras o números.",
-      });
-    } else if ((RESERVED_SLUGS as readonly string[]).includes(slug)) {
-      ctx.addIssue({ code: "custom", path: ["slug"], message: "Esa dirección está reservada. Elegí otra." });
-    }
-    return { ...value, slug };
-  });
+  .transform(withResolvedSlug);
+
+// For a signed-in user who has no organization yet (e.g. the slug was taken at registration).
+export const createOrganizationSchema = z.object(orgFields).transform(withResolvedSlug);
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;

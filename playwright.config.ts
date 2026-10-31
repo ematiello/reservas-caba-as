@@ -1,4 +1,8 @@
+import { loadEnvConfig } from "@next/env";
 import { defineConfig, devices } from "@playwright/test";
+
+// Same .env.local the app uses: DB-backed e2e tests create throwaway users with the secret key.
+loadEnvConfig(process.cwd());
 
 const port = 3100;
 
