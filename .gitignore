@@ -28,3 +28,6 @@ playwright/.cache/
 .DS_Store
 Thumbs.db
 ~$*
+
+# Hostinger deploy package (npm run package:hostinger)
+dist/

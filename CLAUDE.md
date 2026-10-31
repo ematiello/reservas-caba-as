@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Plataforma **SaaS multiempresa de reservas** para cabañas, casas, departamentos, habitaciones y pequeños hoteles: Superadmin → Propietarios (organizaciones) → Establecimientos → Unidades. Fuente funcional: `Plan CHATGPT.docx` (relevamiento). Para leerlo: `unzip -p "Plan CHATGPT.docx" word/document.xml | sed -e 's/<\/w:p>/\n/g' -e 's/<[^>]*>//g'`. Análisis, decisiones y diseño aprobados en `docs/` (empezar por `docs/05-decisiones.md`).
 
-Fase actual: **Fase 0** — esqueleto local listo y verificado; faltan `supabase link` al proyecto dev (`uqgmtcmdaxruiwkawxxx`) y el despliegue de prueba en Hostinger.
+Fase actual: **Fase 0** — esqueleto local, `supabase link` al proyecto dev (`uqgmtcmdaxruiwkawxxx`) y despliegue de prueba en Hostinger listos y verificados; pendiente la revisión de cierre.
 
 ## Comandos
 
@@ -20,6 +20,7 @@ npx vitest run -t "fails fast"                 # un test por nombre
 npm run test:e2e            # Playwright: build + server standalone en :3100, móvil y escritorio
 npm run build               # build de producción (output: standalone)
 npm start                   # scripts/start-standalone.mjs: copia estáticos y arranca .next/standalone/server.js
+npm run package:hostinger   # tras `npm run build`: arma dist/hostinger/app.tgz para subir a Hostinger (D20)
 npx supabase migration new <nombre>   # nueva migración (nunca inventar el nombre del archivo)
 npx supabase db push        # aplica migraciones al proyecto linkeado (dev)
 npm run db:types            # regenera src/lib/supabase/database.types.ts

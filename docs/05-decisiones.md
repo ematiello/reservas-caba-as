@@ -24,6 +24,7 @@ Formato: fecha · decisión · motivo. Las decisiones nuevas se agregan al final
 | D17 | 2026-10-30 | Se aceptan 3 avisos de severidad baja de `npm audit` (`deepmerge` dentro del CLI de `shadcn`) | Solo afecta herramientas de desarrollo y build; el "fix" sugerido es un downgrade a shadcn 1.0. Se revisa en cada actualización |
 | D18 | 2026-10-30 | MCP oficial de Supabase (`mcp.supabase.com`, OAuth) a nivel proyecto, fijado al proyecto dev y en `read_only=true` | Los agentes pueden consultar esquema, logs y advisors sin poder modificar la base; los cambios quedan versionados como migraciones (D4) |
 | D19 | 2026-10-30 | El despliegue de prueba va a un sitio nuevo e independiente de Hostinger, `violet-quail-122403.hostingersite.com` (dominio temporal gratuito, plan `64958056`); no se usa `darkcyan-seahorse-806320` | La app es independiente de los demás sitios del plan; se conecta un dominio propio más adelante |
+| D20 | 2026-10-30 | Despliegue en Hostinger con build local y paquete precompilado (`npm run package:hostinger` → `dist/hostinger/app.tgz`), no build en el servidor ni conexión directa a GitHub | El servidor de build de Hostinger tiene glibc < 2.29 y el SWC nativo de Next no carga (verificado: `GLIBC_2.29 not found`). Verificado en `violet-quail-122403`: `/` y `/api/health` responden 200. Alternativas descartadas: webpack + SWC WASM (frágil con Tailwind v4) y VPS. Más adelante se puede automatizar el paso con GitHub Actions |
 
 ## Pendientes (decisión comercial del usuario)
 
