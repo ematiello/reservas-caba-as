@@ -1,0 +1,47 @@
+import { createHash, randomBytes } from "node:crypto";
+
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const secretKey = process.env.SUPABASE_SECRET_KEY;
+
+export const hasDbEnv = Boolean(url && publishableKey && secretKey);
+
+const options = { auth: { persistSession: false, autoRefreshToken: false } };
+
+/** Bypasses RLS: only for test setup and cleanup, never for assertions. */
+export function adminClient(): SupabaseClient {
+  return createClient(url!, secretKey!, options);
+}
+
+export function anonClient(): SupabaseClient {
+  return createClient(url!, publishableKey!, options);
+}
+
+export type TestUser = { id: string; email: string; client: SupabaseClient };
+
+export async function createTestUser(admin: SupabaseClient, label: string): Promise<TestUser> {
+  const email = `rls-${label}-${randomBytes(4).toString("hex")}@example.com`;
+  const password = randomBytes(16).toString("hex");
+  const created = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { full_name: `Test ${label}` },
+  });
+  if (created.error) throw created.error;
+  const client = anonClient();
+  const signedIn = await client.auth.signInWithPassword({ email, password });
+  if (signedIn.error) throw signedIn.error;
+  return { id: created.data.user.id, email, client };
+}
+
+export function newToken(): { token: string; hash: string } {
+  const token = randomBytes(24).toString("base64url");
+  return { token, hash: createHash("sha256").update(token).digest("hex") };
+}
+
+export function uniqueSlug(prefix: string): string {
+  return `${prefix}-${randomBytes(4).toString("hex")}`;
+}
