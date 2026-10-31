@@ -9,7 +9,7 @@ Formato: fecha · decisión · motivo. Las decisiones nuevas se agregan al final
 | D3 | 2026-10-30 | **Inventario = habitación física + categoría**, con asignación automática de una unidad libre | Un solo mecanismo anti-superposición (restricción de exclusión) para todo tipo de alojamiento; sin contadores de cupos |
 | D4 | 2026-10-30 | **Base de datos de desarrollo = proyecto Supabase en la nube**, separado de producción. Migraciones con `supabase db push` y pruebas con Vitest | No hay Docker en el equipo de desarrollo |
 | D5 | 2026-10-30 | **Roles fijos** `owner`, `admin` y `operator` | Políticas RLS simples y fáciles de probar; se puede ampliar después |
-| D6 | 2026-10-30 | Hosting **Hostinger Business** (Node.js), con build `standalone`. Se valida en la Fase 0 sobre el sitio de prueba existente | Plan ya contratado (pedido 64958056) |
+| D6 | 2026-10-30 | Hosting **Hostinger Business** (Node.js), con build `standalone`. Se validó en la Fase 0 sobre un sitio de prueba nuevo (D19) | Plan ya contratado (pedido 64958056) |
 | D7 | 2026-10-30 | Vencimientos de provisionales y ciclo de vida de suscripciones en **`pg_cron`**, más una verificación en la función de alta | El proceso Node en hosting compartido no garantiza estar siempre activo |
 | D8 | 2026-10-30 | Superadmin mediante `is_platform_admin()` dentro de las políticas RLS. La `service_role` se limita a tareas internas | Evitar saltear RLS desde la app; acceso auditable |
 | D9 | 2026-10-30 | Precios con una función TypeScript sin efectos secundarios, con prioridades por defecto base < temporada < fin de semana < feriado < fecha especial. El resultado se congela en la reserva | Se puede probar sin base de datos y las reglas superpuestas no quedan ambiguas |
