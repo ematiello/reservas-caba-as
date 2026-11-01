@@ -11,14 +11,17 @@ Objetivo: planes, suscripción con prueba de 7 días, pagos manuales, días de g
 - S7. Permisos (`docs/03`): `subscriptions`, `subscription_payments`: lectura del `owner` o Superadmin; escritura solo Superadmin. `plans`: lectura de todos (también `anon`); escritura solo Superadmin. Auditoría por triggers en `subscriptions` y `subscription_payments`.
 
 ## Tasks
-- T1 (S1,S4-S7) Migración: `plans`, `platform_settings`, `subscriptions`, `subscription_payments`, `org_is_active()` con suscripción, `review_organization` con plan, `record_subscription_payment`, `suspend_subscription`, `run_subscription_lifecycle(p_today)`, `pg_cron`, límite de colaboradores en `accept_invitation`, auditoría, RLS. Ruta: inline. PENDIENTE.
-- T2 (S2-S5,S7) Pruebas de BD con fechas simuladas e invariante 6. Ruta: inline. PENDIENTE.
-- T3 (S4) `billing.ts`: importe a cobrar con descuento vigente (función pura, TDD). Ruta: inline. PENDIENTE.
-- T4 (S6,S7) `/admin`: planes, ajustes (prueba y gracia), aprobación con plan, ficha de organización (pago, descuento, gracia, plan, suspensión). Ruta: inline. PENDIENTE.
-- T5 (S3,S7) Panel: `/panel/suscripcion` para el owner; aviso de solo lectura con la cuenta suspendida. Ruta: inline. PENDIENTE.
-- T6 (S2) e2e, docs (D22-D23), revisión. Ruta: inline. PENDIENTE.
+- T1 (S1,S4-S7) Migración `20261101145747_subscriptions.sql` + `20261101150650_member_cap_lock.sql`. Ruta: inline. HECHA: aplicada al dev; job `subscription-lifecycle` (`0 6 * * *`) verificado en `cron.job`. Commit `3512eb9` (+ `7256cb7`).
+- T2 (S2-S5,S7) Pruebas de BD (`tests/db/subscriptions.test.ts`, 21). Ruta: inline. HECHA. RED: `PGRST205` antes de la migración; la carrera del tope de colaboradores reprodujo 2 altas con tope 1 antes del bloqueo. GREEN: 21/21; la de concurrencia, 5 de 5 corridas.
+- T3 (S4) `billing.ts` (`amountDue`, `formatArs`), TDD. Ruta: inline. HECHA: RED por módulo inexistente; GREEN 5/5.
+- T4 (S6,S7) `/admin` (aprobación con plan, estado de suscripción, enlaces), `/admin/planes` (planes, prueba y gracia), `/admin/organizaciones/[id]` (pago con importe sugerido, plan y gracia, descuento, suspensión, historial). Esquemas Zod con pesos → centavos (20 pruebas). Ruta: inline. HECHA (tramo B).
+- T5 (S3,S7) `/panel/suscripcion` (solo owner) y aviso de solo lectura en `/panel` con `org_access_active`. Ruta: inline. HECHA (tramo B).
+- T6 (S2) e2e `tests/e2e/subscriptions.spec.ts` (crear plan, aprobar con plan, pago, vista del owner, suspensión); docs D22-D24; revisión nativa del tramo A aprobada. Ruta: inline. HECHA salvo revisión del tramo B.
 
 ## Log
 - L1 (2026-11-01, usuario): "El diseño del sitio es un asco, vamos a mejorarlo mas adelante. continuemos con toda implementacion de las fases"
 - L2 (2026-11-01, usuario): "Sí, editables desde /admin, seguí con la implementacion de la fase"
 - L3: Supuestos de diseño (registrados como D22-D23): el Superadmin elige el plan al aprobar (opcional, se puede asignar después) en lugar de que el propietario lo elija al registrarse; `org_is_active()` evalúa también la fecha (`hoy < fin del período + días de gracia`), así la suspensión rige aunque `pg_cron` no haya corrido; `platform_settings.default_grace_days` arranca en 0 como valor provisorio que el Superadmin edita; las organizaciones ya activas de la Fase 1 reciben una prueba al aplicar la migración. Espejo en Engram pendiente (herramientas no disponibles).
+- L4: El hook `gga` frenó el primer commit del tramo A: (1) carrera en el tope de colaboradores, confirmada con una prueba (RED) y corregida con un bloqueo de la fila de la organización en una migración aparte (la primera ya estaba aplicada en dev); (2) valores comerciales: registrados como D22 (7 días salen de `docs/01`; gracia 0 provisoria y editable); (3) patrón de RLS owner-only: registrado como D24 (matriz de `01`). Advertencia aceptada: el Superadmin puede asignar por `update` un plan inactivo (solo él puede).
+- L5: Revisión nativa del tramo A (base `ffb0888`; consentimiento del usuario "Review this change"; riesgo elevado a alto por migración/RLS; lentes `risk` y `reliability`): aprobada sin bloqueantes y reconocida.
+- L6: Tramos: A base de datos = `3512eb9`, `7256cb7` (`feat/fase-2-a-db`); B interfaz = commit siguiente (`feat/fase-2-b-ui`). Verificación: Vitest 117/117 (dos corridas), e2e 46/46 en móvil y escritorio, lint y typecheck OK. Corriendo Vitest y e2e a la vez contra la misma base hubo fallas por contención que no se repiten por separado. Cambio visible: en `/admin` la aprobación ofrece elegir plan; en `/panel` se agregó el enlace "Suscripción" y el aviso de solo lectura (se mantiene "Tu cuenta está activa" si puede escribir).

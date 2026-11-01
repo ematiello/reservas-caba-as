@@ -148,19 +148,27 @@ export async function createOrganizationAction(_prev: FormState, formData: FormD
 const reviewSchema = z.object({
   orgId: z.uuid(),
   decision: z.enum(["approve", "reject"]),
+  // Optional: the plan can also be assigned later from the organization page.
+  planId: z.union([z.uuid(), z.literal("")]).transform((v) => v || null),
 });
 
 // Superadmin only: the check here and `review_organization()` (SECURITY DEFINER, checks
 // `is_platform_admin()`) are independent, so a forged request fails in both places.
 export async function reviewOrganizationAction(formData: FormData): Promise<void> {
   await requirePlatformAdmin();
-  const parsed = reviewSchema.safeParse({ orgId: text(formData, "orgId"), decision: text(formData, "decision") });
+  const parsed = reviewSchema.safeParse({
+    orgId: text(formData, "orgId"),
+    decision: text(formData, "decision"),
+    planId: text(formData, "planId"),
+  });
   if (!parsed.success) return;
 
+  const approve = parsed.data.decision === "approve";
   const supabase = await createClient();
   const { error } = await supabase.rpc("review_organization", {
     p_org: parsed.data.orgId,
-    p_approve: parsed.data.decision === "approve",
+    p_approve: approve,
+    ...(approve && parsed.data.planId ? { p_plan: parsed.data.planId } : {}),
   });
   // e.g. already reviewed by someone else: tell the admin instead of failing silently.
   if (error) redirect("/admin?error=revision");

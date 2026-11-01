@@ -5,7 +5,10 @@ import { Suspense } from "react";
 import { AppShell } from "@/components/shell/app-shell";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Notice } from "@/components/shell/notice";
+import type { OrgMembership } from "@/modules/organizaciones/panel-state";
 import { requirePanelAccess } from "@/modules/organizaciones/session";
+import { isOrgAccessActive } from "@/modules/suscripciones/queries";
 
 import { CreateOrganizationForm } from "./create-organization-form";
 
@@ -53,21 +56,43 @@ async function PanelContent() {
       ) : null}
 
       {state.kind === "active" ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>{state.membership.orgName}</CardTitle>
-            <CardDescription>Tu cuenta está activa. Próximamente: establecimientos y reservas.</CardDescription>
-          </CardHeader>
-          {state.membership.role === "owner" ? (
-            <CardContent>
-              <Link href="/panel/equipo" className={buttonVariants({ variant: "outline" })}>
-                Gestionar equipo
-              </Link>
-            </CardContent>
-          ) : null}
-        </Card>
+        <ActivePanel membership={state.membership} />
       ) : null}
     </AppShell>
+  );
+}
+
+// Organization approved. Writes also need a live subscription (invariant 6): otherwise read-only.
+async function ActivePanel({ membership }: { membership: OrgMembership }) {
+  const writable = await isOrgAccessActive(membership.orgId);
+  const isOwner = membership.role === "owner";
+  return (
+    <div className="grid gap-4">
+      {writable ? null : (
+        <Notice tone="warning">
+          La cuenta de «{membership.orgName}» está suspendida o vencida: el panel queda en solo lectura y los datos se
+          conservan.{isOwner ? " Revisá el estado en Suscripción." : " Avisale al propietario."}
+        </Notice>
+      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>{membership.orgName}</CardTitle>
+          <CardDescription>
+            {writable ? "Tu cuenta está activa. " : ""}Próximamente: establecimientos y reservas.
+          </CardDescription>
+        </CardHeader>
+        {isOwner ? (
+          <CardContent className="flex flex-wrap gap-3">
+            <Link href="/panel/equipo" className={buttonVariants({ variant: "outline" })}>
+              Gestionar equipo
+            </Link>
+            <Link href="/panel/suscripcion" className={buttonVariants({ variant: "outline" })}>
+              Suscripción
+            </Link>
+          </CardContent>
+        ) : null}
+      </Card>
+    </div>
   );
 }
 
