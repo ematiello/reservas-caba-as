@@ -78,11 +78,14 @@ async function ActivePanel({ membership }: { membership: OrgMembership }) {
         <CardHeader>
           <CardTitle>{membership.orgName}</CardTitle>
           <CardDescription>
-            {writable ? "Tu cuenta está activa. " : ""}Próximamente: reservas y calendario.
+            {writable ? "Tu cuenta está activa." : "Podés consultar el calendario y los alojamientos."}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <Link href="/panel/alojamientos" className={buttonVariants()}>
+          <Link href="/panel/reservas" className={buttonVariants()}>
+            Reservas
+          </Link>
+          <Link href="/panel/alojamientos" className={buttonVariants({ variant: "outline" })}>
             Alojamientos
           </Link>
           {isOwner ? (
