@@ -12,7 +12,7 @@ Fase 1 (organizaciones y acceso) cerrada: 3 ramas apiladas con push (`feat/fase-
 
 Fase 2 (suscripciones) implementada y revisada en 2 ramas apiladas (`feat/fase-2-a-db` → `feat/fase-2-b-ui`; ver `odd/tasks/fase-2-suscripciones.md`). Planes, días de prueba y de gracia se editan en `/admin/planes` (D22); `org_is_active()` evalúa la suscripción y la fecha (D23).
 
-Fase actual: **Fase 3 — Alojamientos**, apilada sobre la Fase 2 (`feat/fase-3-a-db` → `feat/fase-3-b-ui`; ver `odd/tasks/fase-3-alojamientos.md`). Fotos en el bucket `media` con ruta `{org_id}/{property_id}/...`, redimensionadas en el navegador. En e2e, la ruta anterior queda montada y oculta (`cacheComponents`): usar `.filter({ visible: true })` cuando un campo se repite entre páginas. Correr la suite muchas veces seguidas choca con el límite de inicios de sesión de Supabase Auth.
+Fase 3 (alojamientos) implementada y revisada en 2 ramas apiladas sobre la Fase 2 (`feat/fase-3-a-db` → `feat/fase-3-b-ui`; ver `odd/tasks/fase-3-alojamientos.md`). Siguiente: **Fase 4 — motor de reservas y calendario**. Fotos en el bucket `media` con ruta `{org_id}/{property_id}/...`, redimensionadas en el navegador. En e2e, la ruta anterior queda montada y oculta (`cacheComponents`): usar `.filter({ visible: true })` cuando un campo se repite entre páginas. Correr la suite muchas veces seguidas choca con el límite de inicios de sesión de Supabase Auth.
 
 ## Comandos
 
