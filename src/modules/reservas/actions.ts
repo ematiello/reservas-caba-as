@@ -8,7 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { writeAccess } from "@/modules/organizaciones/access";
 import { requireActiveMembership } from "@/modules/organizaciones/session";
 import type { PricingResult } from "@/modules/tarifas/pricing";
-import { quoteStay, type Stay, writeFrozenPrice } from "@/modules/tarifas/server";
+import { clearFrozenPrice, quoteStay, type Stay, writeFrozenPrice } from "@/modules/tarifas/server";
 
 import { bookingErrorCode } from "./errors";
 import { blockSchema, bookingSchema, moveSchema, statusSchema } from "./schemas";
@@ -102,8 +102,15 @@ export async function createBookingAction(formData: FormData): Promise<void> {
     price = row ? await tryQuote(org.orgId, { unitId: row.unit_id, ...stay }) : null;
     const late = price && minNightsError(price, back(formData));
     if (late) {
-      // The unit's rates reject the stay: release the dates again.
-      await supabase.from("bookings").update({ status: "cancelled" }).eq("org_id", org.orgId).eq("id", data);
+      // The unit's rates reject the stay: release the dates again. If that fails, the booking still
+      // holds the dates, so send the user to it instead of reporting a booking that does not exist.
+      const cancelled = await supabase
+        .from("bookings")
+        .update({ status: "cancelled" })
+        .eq("org_id", org.orgId)
+        .eq("id", data)
+        .select("id");
+      if (cancelled.error || cancelled.data?.length !== 1) done(detailPath(data), { error: "minimo_sin_anular" });
       done(NEW, { error: late.error }, late.keep);
     }
   }
@@ -132,7 +139,8 @@ export async function priceBookingAction(formData: FormData): Promise<void> {
   const price = await tryQuote(org.orgId, { unitId: b.unit_id, checkIn: b.check_in, checkOut: b.check_out, guests: b.guests_count });
   if (!price) done(detailPath(id.data), { error: "escritura" });
   if (!price.ok) done(detailPath(id.data), { error: price.error === "min_nights" ? "estadia_minima" : "sin_tarifa" });
-  if (!(await writeFrozenPrice(org.orgId, id.data, price))) done(detailPath(id.data), { error: "escritura" });
+  // A price frozen meanwhile (a concurrent confirm or move) wins over this one.
+  if (!(await writeFrozenPrice(org.orgId, id.data, price, { onlyIfUnpriced: true }))) done(detailPath(id.data), { error: "escritura" });
   done(detailPath(id.data), { ok: "precio" });
 }
 
@@ -174,7 +182,7 @@ export async function setBookingStatusAction(formData: FormData): Promise<void> 
   // Confirming freezes the price when the booking still has none (docs/01); a frozen one stays.
   if (status === "confirmed" && row.kind === "booking" && row.total_cents === null && row.guests_count !== null) {
     const price = await tryQuote(org.orgId, { unitId: row.unit_id, checkIn: row.check_in, checkOut: row.check_out, guests: row.guests_count });
-    if (price) await writeFrozenPrice(org.orgId, bookingId, price);
+    if (price) await writeFrozenPrice(org.orgId, bookingId, price, { onlyIfUnpriced: true });
   }
   done(detailPath(bookingId), { ok: status });
 }
@@ -218,6 +226,11 @@ export async function moveBookingAction(formData: FormData): Promise<void> {
     .select("id");
   if (error) done(detailPath(m.bookingId), { error: bookingErrorCode(error) });
   if (!data?.length) done(detailPath(m.bookingId), { error: "escritura" });
-  if (price) await writeFrozenPrice(org.orgId, m.bookingId, price);
+  if (current.kind === "booking") {
+    // The old price belongs to the old stay: when the new one cannot be priced, drop it (the page
+    // then offers to compute it), and say so when even that write fails.
+    const repriced = price ? await writeFrozenPrice(org.orgId, m.bookingId, price) : await clearFrozenPrice(org.orgId, m.bookingId);
+    if (!repriced) done(detailPath(m.bookingId), { error: "precio_pendiente" });
+  }
   done(detailPath(m.bookingId), { ok: "movida" });
 }

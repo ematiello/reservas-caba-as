@@ -31,6 +31,9 @@ export const MESSAGES: Record<string, string> = {
   anulacion_rechazada: "No se pudo anular: solo el propietario o un administrador, y una sola vez.",
   sin_permiso: "Solo el propietario o un administrador pueden hacer eso.",
   sena_invalida: "La seña tiene que ser un importe entre cero y el total de la reserva.",
+  precio_pendiente: "La reserva se actualizó, pero su precio no se pudo recalcular: revisalo antes de cobrar.",
+  minimo_sin_anular:
+    "Las tarifas de la unidad asignada piden una estadía más larga y la reserva no se pudo anular sola: anulala desde acá.",
 };
 
 /** The ?ok= / ?error= message; the minimum stay carries the required nights in ?minimo=. */

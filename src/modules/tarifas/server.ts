@@ -43,12 +43,34 @@ export async function quoteStay(orgId: string, stay: Stay): Promise<PricingResul
   });
 }
 
-/** Freezes the quote into the booking (or clears it when a night has no rate). False on failure. */
-export async function writeFrozenPrice(orgId: string, bookingId: string, result: PricingResult): Promise<boolean> {
+/**
+ * Freezes the quote into the booking (or clears it when a night has no rate). False on failure.
+ * `onlyIfUnpriced` makes "compute if missing" idempotent: a price frozen meanwhile is kept.
+ */
+export async function writeFrozenPrice(
+  orgId: string,
+  bookingId: string,
+  result: PricingResult,
+  { onlyIfUnpriced = false }: { onlyIfUnpriced?: boolean } = {},
+): Promise<boolean> {
   const values = frozenPrice(result);
   if (!values) return false;
+  return adminWrite("frozen price", () => {
+    const query = createAdminClient().from("bookings").update(values).eq("org_id", orgId).eq("id", bookingId).eq("kind", "booking");
+    return (onlyIfUnpriced ? query.is("total_cents", null) : query).select("id");
+  });
+}
+
+/** Drops a booking's price when its stay changed but could not be priced again. False on failure. */
+export async function clearFrozenPrice(orgId: string, bookingId: string): Promise<boolean> {
   return adminWrite("frozen price", () =>
-    createAdminClient().from("bookings").update(values).eq("org_id", orgId).eq("id", bookingId).eq("kind", "booking").select("id"),
+    createAdminClient()
+      .from("bookings")
+      .update({ total_cents: null, deposit_cents: null, price_breakdown: null })
+      .eq("org_id", orgId)
+      .eq("id", bookingId)
+      .eq("kind", "booking")
+      .select("id"),
   );
 }
 
