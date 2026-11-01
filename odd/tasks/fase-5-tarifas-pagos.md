@@ -1,0 +1,36 @@
+# Fase 5 — Tarifas y pagos
+Objetivo: motor de precios puro en TypeScript, ABM de tarifas, precio congelado en la reserva, pagos manuales de huéspedes (seña, parciales, saldo) y base de huéspedes. Ramas apiladas sobre la Fase 4: `feat/fase-5-a-db` → `feat/fase-5-b-ui`. Entrega: `stacked-to-main`. Runner: Vitest (`src/**` puro, `tests/db/**` contra dev) y Playwright (móvil y escritorio).
+
+## Specs
+- S1. Entrega (`docs/04`): "`pricing.ts` sin efectos secundarios, ABM de reglas, precio congelado, pagos de huéspedes (seña, parciales, saldo), base de huéspedes". Criterio: "Tabla de casos de tarifas en verde; invariante 8; el saldo es correcto". Revisión 4R: "✓ (pagos)".
+- S2. Casos mínimos (`docs/04`, `pricing.test.ts`): "1. Una estadía solo con tarifa base. 2. Una estadía que cruza el inicio de una temporada (noches con precios distintos). 3. Un feriado dentro de la temporada (gana el feriado). 4. Un fin de semana en temporada (gana el fin de semana; en igualdad de prioridad, la regla más reciente). 5. Una fecha especial por encima de todo. 6. Huéspedes adicionales sobre los incluidos. 7. Estadía mínima no cumplida → error con el mínimo requerido. 8. Descuento por duración aplicado sobre el subtotal. 9. Seña redondeada a centavos según el porcentaje del establecimiento."
+- S3. Reglas (`docs/01`): "El precio se calcula **noche por noche**. Para cada noche se aplica la regla vigente de **mayor prioridad**. Las prioridades por defecto, de menor a mayor, son: base 0, temporada 10, fin de semana 20, feriado 30, fecha especial 40. Cada regla puede tener una prioridad explícita. Si dos reglas tienen la misma prioridad, se usa la creada más recientemente." "Fin de semana = las noches de los días configurados (por defecto, viernes y sábado)." "Huéspedes adicionales: se suma un cargo por noche por cada huésped que supere los incluidos en la tarifa, si la regla lo define." "Estadía mínima: se exige la mayor `min_nights` entre las reglas aplicadas en la estadía." "Descuento por duración: se aplica el mayor porcentaje cuyo `min_nights` se cumpla, sobre el subtotal." "Seña sugerida: un porcentaje configurable por establecimiento. El propietario puede ajustarla en cada reserva." "Al crear o confirmar la reserva, el servidor calcula y **congela** el total, el desglose por noche, las reglas aplicadas y la seña. Cambiar una tarifa después no modifica las reservas existentes."
+- S4. Esquema (`docs/03`): "`holidays(date pk, name)`: feriados nacionales, los carga el Superadmin." "`rate_rules(id, org_id, property_id, unit_id null, category_id null, kind enum('base','season','weekend','holiday','special'), name, date_from date null, date_to date null, price_cents, guests_included int null, extra_guest_cents bigint null, min_nights int null, priority int, created_at)`, con check: debe indicar `unit_id` o `category_id`." "`length_discounts(id, org_id, property_id, min_nights, pct)`". "`booking_payments(id, org_id, booking_id, kind enum('deposit','payment','refund'), method enum('cash','transfer','mercadopago','other'), amount_cents, currency, paid_at, reference, recorded_by, voided_at null)`. El saldo se calcula como `total_cents − Σ pagos válidos`." Auditoría por trigger en `booking_payments` y `rate_rules`.
+- S5. RLS (`docs/03`): "`rate_rules`, `length_discounts` … `has_org_role(org_id, '{owner,admin}')` y organización activa". "`bookings`, `guests`, `booking_payments` (alta) … cualquier rol y organización activa. Anular pagos: `owner` o `admin`". Invariante 5: "Un `operator` no puede modificar tarifas". Invariante 8: "El precio congelado de una reserva no cambia cuando se edita una tarifa." Operador: sin "tarifas, pagos sensibles ni configuración" (CLAUDE.md).
+- S6. Invariantes de CLAUDE.md: "Se calcula en el servidor; el cliente nunca envía importes. Precio, desglose y seña se **congelan** en la reserva. Importes en enteros (centavos), moneda explícita (ARS)." "Circuitos económicos separados: pagos de suscripciones ≠ pagos de huéspedes". "la `service_role` solo en servidor y solo para tareas internas".
+- S7. UI: ABM de tarifas y descuentos por establecimiento, feriados en `/admin`, precio y saldo en la reserva, registrar y anular pagos, ajustar la seña, base de huéspedes. Mobile-first.
+
+## Tasks
+- T1 (S4,S5) Migración `20261101205448_pricing_and_payments.sql`: `holidays`, `rate_rules`, `length_discounts`, `booking_payments` (tipos propios `guest_payment_kind`/`guest_payment_method`, separados de los de suscripción), guardia de pagos, RLS, auditoría. Ruta: inline. HECHA: aplicada al dev; advisors de seguridad sin hallazgos nuevos.
+- T2 (S2,S3) `src/modules/tarifas/pricing.ts` (16 pruebas: los 9 casos y bordes) y `src/modules/pagos/balance.ts` (6). Ruta: inline. HECHA: RED sin módulo, GREEN 22/22.
+- T3 (S4,S5) `tests/db/pricing-payments.test.ts` (14). Ruta: inline. HECHA: RED 12 fallas sin tablas (2 pasaban en vacío); GREEN 14/14; `bookings.test.ts` sigue 23/23.
+- T4 (S1,S6) Tramo B: cliente `service_role` solo en servidor, cálculo y congelado al crear/mover, recálculo si quedó sin precio. Ruta: inline. Pendiente.
+- T5 (S7) Tramo B: ABM de tarifas y descuentos, feriados en `/admin`, pagos y saldo en la reserva, seña ajustable, base de huéspedes. Ruta: inline. Pendiente.
+- T6 (S1,S7) e2e. Ruta: inline. Pendiente.
+
+## Log
+- L1 (2026-11-01, usuario): "continuemos, con la fase 5".
+- L2: Supuestos (no son reglas comerciales):
+  - Una unidad usa sus reglas propias y las de su categoría, con la misma prioridad entre sí.
+  - `date_from`/`date_to` son noches inclusive. Base sin fechas = todo el año. Temporada y fecha especial exigen fechas. Fin de semana y feriado pueden acotarse con fechas.
+  - Si alguna noche no tiene regla, la reserva se registra **sin precio** ("Sin tarifa") y se puede recalcular después de cargar tarifas. Así se sigue pudiendo reservar sin tarifas cargadas.
+  - Estadía mínima no cumplida: se rechaza la reserva.
+  - El precio se congela al crear. Al confirmar solo se calcula si todavía no tenía. Al cambiar fechas, unidad o huéspedes se recalcula (es otra estadía).
+  - Huéspedes adicionales y estadía mínima salen de la regla ganadora de cada noche.
+  - Descuento y seña se redondean al centavo más cercano (mitad hacia arriba).
+  - Saldo = total − (señas + pagos − devoluciones), sin contar los anulados.
+  - Ajustar la seña y anular pagos: `owner` o `admin`. Registrar pagos: cualquier rol.
+  - El congelado se escribe con un cliente `service_role` solo en servidor (L4 de la Fase 4), después de verificar con la sesión del usuario que la reserva es de su organización.
+  - Los feriados son globales (los carga el Superadmin); la lectura pública de tarifas queda para la Fase 6.
+- L3: Topes técnicos de validación (no comerciales): noches 1–365, prioridad 0–1000, descuento 1–100 % desde 2 noches, nombre de regla hasta 80 caracteres. Dónde aplica una regla (establecimiento, unidad, categoría) no se edita después de crearla.
+- L4: El primer `db push` falló: `payment_method` ya existía (pagos de suscripción). No se aplicó nada; se usaron tipos propios. Advisors de rendimiento: FKs compuestas sin índice (INFO), mismo patrón que tablas anteriores → P25.
