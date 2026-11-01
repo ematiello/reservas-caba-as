@@ -26,11 +26,14 @@ Formato: fecha · decisión · motivo. Las decisiones nuevas se agregan al final
 | D19 | 2026-10-30 | El despliegue de prueba va a un sitio nuevo e independiente de Hostinger, `violet-quail-122403.hostingersite.com` (dominio temporal gratuito, plan `64958056`); no se usa `darkcyan-seahorse-806320` | La app es independiente de los demás sitios del plan; se conecta un dominio propio más adelante |
 | D20 | 2026-10-30 | Despliegue en Hostinger con build local y paquete precompilado (`npm run package:hostinger` → `dist/hostinger/app.tgz`), no build en el servidor ni conexión directa a GitHub | El servidor de build de Hostinger tiene glibc < 2.29 y el SWC nativo de Next no carga (verificado: `GLIBC_2.29 not found`). Verificado en `violet-quail-122403`: `/` y `/api/health` responden 200. Alternativas descartadas: webpack + SWC WASM (frágil con Tailwind v4) y VPS. Más adelante se puede automatizar el paso con GitHub Actions |
 | D21 | 2026-10-31 | Los colaboradores se invitan con un **enlace de invitación** que el propietario comparte (p. ej. por WhatsApp), sin depender de SMTP. Token de un solo uso, se guarda solo su hash, vence a los 7 días | Evita bloquear la Fase 1 por el proveedor de correo (pendiente) y encaja con el uso de WhatsApp del producto |
+| D22 | 2026-11-01 | Precio y límites de cada plan, días de prueba y días de gracia son **datos que el Superadmin edita en `/admin`** (`plans`, `platform_settings`), no valores en el código. Prueba: 7 días (regla de `01`). Gracia: arranca en 0 como valor provisorio hasta que el usuario la fije. El Superadmin elige el plan al aprobar (opcional; se puede asignar después) | Indicación del usuario: "Sí, editables desde /admin". Permite implementar la Fase 2 sin esperar la decisión comercial |
+| D23 | 2026-11-01 | `org_is_active()` exige organización aprobada y suscripción en `trial`, `active` o `past_due` **y** `hoy < fin del período + días de gracia` (fecha de Argentina). Así la cuenta queda en solo lectura aunque `pg_cron` todavía no haya corrido. Pago con la cuenta al día: el período sigue desde su fin (aniversario); con la cuenta vencida o suspendida: arranca el día del pago | Mismo criterio que las provisionales de reservas: el resultado no depende de cuándo corre la tarea |
+| D24 | 2026-11-01 | Suscripción y pagos de la plataforma los lee solo el `owner` (`has_org_role(org_id, '{owner}')`) o el Superadmin, igual que las invitaciones; no el patrón general `user_org_ids()` | Matriz de `01`: "Ver suscripción y pagos de la plataforma" es solo del `owner` |
 
 ## Pendientes (decisión comercial del usuario)
 
-- Precio y límites de cada plan (unidades y colaboradores).
-- Días de gracia iniciales.
+- Precio y límites de cada plan (unidades y colaboradores): se cargan en `/admin` (D22).
+- Días de gracia iniciales: se cargan en `/admin` (D22; hoy 0).
 - Dominio y nombre comercial.
 - Proveedor de SMTP para Supabase Auth. Recomendación: Resend.
 - Política de conservación de datos personales.

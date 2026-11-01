@@ -178,6 +178,39 @@ export type Database = {
         }
         Relationships: []
       }
+      plans: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          is_active: boolean
+          max_members: number | null
+          max_units: number | null
+          name: string
+          price_cents: number
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          max_members?: number | null
+          max_units?: number | null
+          name: string
+          price_cents: number
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          is_active?: boolean
+          max_members?: number | null
+          max_units?: number | null
+          name?: string
+          price_cents?: number
+        }
+        Relationships: []
+      }
       platform_admins: {
         Row: {
           created_at: string
@@ -190,6 +223,27 @@ export type Database = {
         Update: {
           created_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_settings: {
+        Row: {
+          default_grace_days: number
+          id: boolean
+          trial_days: number
+          updated_at: string
+        }
+        Insert: {
+          default_grace_days?: number
+          id?: boolean
+          trial_days?: number
+          updated_at?: string
+        }
+        Update: {
+          default_grace_days?: number
+          id?: boolean
+          trial_days?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -214,24 +268,168 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_payments: {
+        Row: {
+          amount_cents: number
+          created_at: string
+          currency: string
+          id: string
+          method: Database["public"]["Enums"]["payment_method"]
+          notes: string | null
+          org_id: string
+          paid_at: string
+          period_end: string
+          period_start: string
+          recorded_by: string | null
+          subscription_id: string
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          org_id: string
+          paid_at: string
+          period_end: string
+          period_start: string
+          recorded_by?: string | null
+          subscription_id: string
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: Database["public"]["Enums"]["payment_method"]
+          notes?: string | null
+          org_id?: string
+          paid_at?: string
+          period_end?: string
+          period_start?: string
+          recorded_by?: string | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          discount_cents: number | null
+          discount_pct: number | null
+          discount_until: string | null
+          grace_days: number
+          id: string
+          org_id: string
+          plan_id: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end: string
+          current_period_start: string
+          discount_cents?: number | null
+          discount_pct?: number | null
+          discount_until?: string | null
+          grace_days: number
+          id?: string
+          org_id: string
+          plan_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          discount_cents?: number | null
+          discount_pct?: number | null
+          discount_until?: string | null
+          grace_days?: number
+          id?: string
+          org_id?: string
+          plan_id?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          trial_ends_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      org_access_active: { Args: { p_org: string }; Returns: boolean }
+      record_subscription_payment: {
+        Args: {
+          p_amount_cents: number
+          p_method: Database["public"]["Enums"]["payment_method"]
+          p_months?: number
+          p_notes?: string
+          p_org: string
+          p_paid_at: string
+        }
+        Returns: string
+      }
       register_organization: {
         Args: { p_name: string; p_slug: string }
         Returns: string
       }
       review_organization: {
-        Args: { p_approve: boolean; p_org: string }
+        Args: { p_approve: boolean; p_org: string; p_plan?: string }
         Returns: undefined
       }
+      run_subscription_lifecycle: { Args: { p_today?: string }; Returns: Json }
+      suspend_subscription: { Args: { p_org: string }; Returns: undefined }
     }
     Enums: {
       member_role: "owner" | "admin" | "operator"
       org_status: "pending_approval" | "active" | "rejected"
+      payment_method: "cash" | "transfer" | "mercadopago" | "other"
+      subscription_status:
+        | "trial"
+        | "active"
+        | "past_due"
+        | "suspended"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -364,6 +562,14 @@ export const Constants = {
     Enums: {
       member_role: ["owner", "admin", "operator"],
       org_status: ["pending_approval", "active", "rejected"],
+      payment_method: ["cash", "transfer", "mercadopago", "other"],
+      subscription_status: [
+        "trial",
+        "active",
+        "past_due",
+        "suspended",
+        "cancelled",
+      ],
     },
   },
 } as const
