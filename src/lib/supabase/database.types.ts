@@ -39,6 +39,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      amenities: {
+        Row: {
+          code: string
+          id: string
+          name: string
+        }
+        Insert: {
+          code: string
+          id?: string
+          name: string
+        }
+        Update: {
+          code?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       audit_log: {
         Row: {
           action: string
@@ -116,6 +134,54 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      media: {
+        Row: {
+          alt: string
+          created_at: string
+          id: string
+          org_id: string
+          property_id: string
+          sort: number
+          storage_path: string
+          unit_id: string | null
+        }
+        Insert: {
+          alt?: string
+          created_at?: string
+          id?: string
+          org_id: string
+          property_id: string
+          sort?: number
+          storage_path: string
+          unit_id?: string | null
+        }
+        Update: {
+          alt?: string
+          created_at?: string
+          id?: string
+          org_id?: string
+          property_id?: string
+          sort?: number
+          storage_path?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_org_id_property_id_fkey"
+            columns: ["org_id", "property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["org_id", "id"]
+          },
+          {
+            foreignKeyName: "media_property_id_unit_id_fkey"
+            columns: ["property_id", "unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["property_id", "id"]
           },
         ]
       }
@@ -268,6 +334,86 @@ export type Database = {
         }
         Relationships: []
       }
+      properties: {
+        Row: {
+          address: string | null
+          check_in_time: string | null
+          check_out_time: string | null
+          city: string | null
+          cleaning_buffer_days: number
+          created_at: string
+          deposit_pct: number
+          description: string
+          id: string
+          is_published: boolean
+          lat: number | null
+          lng: number | null
+          name: string
+          org_id: string
+          province: string | null
+          provisional_hold_hours: number
+          slug: string
+          timezone: string
+          updated_at: string
+          weekend_days: number[]
+          whatsapp: string | null
+        }
+        Insert: {
+          address?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string | null
+          cleaning_buffer_days?: number
+          created_at?: string
+          deposit_pct?: number
+          description?: string
+          id?: string
+          is_published?: boolean
+          lat?: number | null
+          lng?: number | null
+          name: string
+          org_id: string
+          province?: string | null
+          provisional_hold_hours?: number
+          slug: string
+          timezone?: string
+          updated_at?: string
+          weekend_days?: number[]
+          whatsapp?: string | null
+        }
+        Update: {
+          address?: string | null
+          check_in_time?: string | null
+          check_out_time?: string | null
+          city?: string | null
+          cleaning_buffer_days?: number
+          created_at?: string
+          deposit_pct?: number
+          description?: string
+          id?: string
+          is_published?: boolean
+          lat?: number | null
+          lng?: number | null
+          name?: string
+          org_id?: string
+          province?: string | null
+          provisional_hold_hours?: number
+          slug?: string
+          timezone?: string
+          updated_at?: string
+          weekend_days?: number[]
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscription_payments: {
         Row: {
           amount_cents: number
@@ -391,6 +537,140 @@ export type Database = {
           },
         ]
       }
+      unit_amenities: {
+        Row: {
+          amenity_id: string
+          org_id: string
+          unit_id: string
+        }
+        Insert: {
+          amenity_id: string
+          org_id: string
+          unit_id: string
+        }
+        Update: {
+          amenity_id?: string
+          org_id?: string
+          unit_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_amenities_amenity_id_fkey"
+            columns: ["amenity_id"]
+            isOneToOne: false
+            referencedRelation: "amenities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unit_amenities_org_id_unit_id_fkey"
+            columns: ["org_id", "unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["org_id", "id"]
+          },
+        ]
+      }
+      unit_categories: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          name: string
+          org_id: string
+          property_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          name: string
+          org_id: string
+          property_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+          org_id?: string
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unit_categories_org_id_property_id_fkey"
+            columns: ["org_id", "property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["org_id", "id"]
+          },
+        ]
+      }
+      units: {
+        Row: {
+          bedrooms: number | null
+          beds: number | null
+          category_id: string | null
+          created_at: string
+          description: string
+          id: string
+          is_published: boolean
+          kind: Database["public"]["Enums"]["unit_kind"]
+          max_guests: number
+          name: string
+          org_id: string
+          property_id: string
+          sort: number
+          updated_at: string
+        }
+        Insert: {
+          bedrooms?: number | null
+          beds?: number | null
+          category_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          kind: Database["public"]["Enums"]["unit_kind"]
+          max_guests: number
+          name: string
+          org_id: string
+          property_id: string
+          sort?: number
+          updated_at?: string
+        }
+        Update: {
+          bedrooms?: number | null
+          beds?: number | null
+          category_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          kind?: Database["public"]["Enums"]["unit_kind"]
+          max_guests?: number
+          name?: string
+          org_id?: string
+          property_id?: string
+          sort?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "units_org_id_property_id_fkey"
+            columns: ["org_id", "property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["org_id", "id"]
+          },
+          {
+            foreignKeyName: "units_property_id_category_id_fkey"
+            columns: ["property_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "unit_categories"
+            referencedColumns: ["property_id", "id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -430,6 +710,7 @@ export type Database = {
         | "past_due"
         | "suspended"
         | "cancelled"
+      unit_kind: "cabin" | "house" | "apartment" | "room"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -570,6 +851,7 @@ export const Constants = {
         "suspended",
         "cancelled",
       ],
+      unit_kind: ["cabin", "house", "apartment", "room"],
     },
   },
 } as const
