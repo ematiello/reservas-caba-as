@@ -142,6 +142,17 @@ describe.skipIf(skipDb)("accommodations (Phase 3)", () => {
       const { error } = await newUnit(ownerA.client, orgA, propA, { category_id: category!.id });
       expect(error?.code).toBe("23503");
     });
+
+    it("a photo cannot point at a unit of another property", async () => {
+      const other = await newProperty(ownerA.client, orgA);
+      const { error } = await ownerA.client.from("media").insert({
+        org_id: orgA,
+        property_id: other.data!.id,
+        unit_id: unitA,
+        storage_path: `${orgA}/${other.data!.id}/00000000-0000-4000-8000-000000000000.webp`,
+      });
+      expect(error?.code).toBe("23503");
+    });
   });
 
   describe("invariant 5: operators", () => {
