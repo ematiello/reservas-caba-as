@@ -471,8 +471,8 @@ describe.skipIf(skipDb)("subscriptions (Phase 2)", () => {
       const owner = await newUser("raceowner");
       const org = await newOrg(owner, "race", capped);
       const joiners = await Promise.all([1, 2, 3, 4].map((i) => newUser(`racer${i}`)));
-      const tokens = [];
-      for (const _ of joiners) tokens.push((await invite(owner, org)).token);
+      const tokens: string[] = [];
+      for (let i = 0; i < joiners.length; i++) tokens.push((await invite(owner, org)).token);
 
       const results = await Promise.all(
         joiners.map((user, i) => user.client.rpc("accept_invitation", { p_token: tokens[i] })),
