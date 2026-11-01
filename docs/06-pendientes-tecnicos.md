@@ -22,4 +22,6 @@ Seguimientos que dejaron las revisiones de las fases 1 a 3. Ninguno bloquea; se 
 | P16 | 3 | Uploader | `crypto.randomUUID()` solo existe en contextos seguros: falla por HTTP en una IP de la red local. | Abierto |
 | P17 | 3 | Pruebas e2e | El servidor standalone a veces termina con código 127 sin dejar log, también con `node` directo. | Abierto |
 | P18 | 1-3 | UI | Decidir el registro del español de la interfaz (hoy voseo: "Revisá", "Elegí") y si los formularios usan React Hook Form (hoy solo server actions + Zod; ver L7 de la Fase 1). | Abierto |
+| P20 | 4 | `tests/db/bookings.test.ts` (prueba de `anon`) | Pasaría también sin RLS: cualquier error cuenta como éxito. Conviene esperar el código exacto (permiso denegado) y probar contra filas que existan (revisión nativa, R3-001). | Abierto |
+| P21 | 4 | `bookings_guard` | Si la misma escritura cambia el estado y `expires_at`, un usuario puede mover el vencimiento (el bloqueo solo rige cuando el estado no cambia) (revisión nativa, R3-002). | Abierto |
 | P19 | 1-3 | Engram | El espejo en Engram de las bitácoras `odd/tasks` está pendiente: no hubo herramientas de Engram en estas sesiones. | Abierto |
