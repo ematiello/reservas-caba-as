@@ -92,7 +92,7 @@ RLS está habilitada en **todas** las tablas de `public`.
 | `organizations` | miembros, o Superadmin | alta por registro (queda `pending_approval`). Aprobar, rechazar y suspender: solo Superadmin |
 | `plans`, `amenities`, `holidays` | todos los autenticados (`plans` también `anon`, para la página de precios) | solo Superadmin |
 | `audit_log` | `owner` de la organización, o Superadmin | sin políticas de escritura (solo triggers) |
-| **Público (`anon`)** | `properties`, `units`, `media`, `rate_rules`, `amenities`: solo si `is_published` y `org_is_active` | nada |
+| **Público (`anon`)** | `properties`, `units`, `media`, `rate_rules`, `length_discounts`, `unit_categories`, `unit_amenities`, `amenities`: solo si `is_published` y `org_is_active`; `holidays` completa. Disponibilidad y estado de la página solo por `public_availability` y `public_property_state` | nada |
 
 **Storage:** bucket `media` público para lectura, con ruta `{org_id}/{property_id}/...`. Para escribir hay que ser miembro con rol `owner` o `admin` de la organización que figura en el primer segmento de la ruta.
 

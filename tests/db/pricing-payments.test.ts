@@ -281,12 +281,16 @@ describe.skipIf(skipDb)("rates and guest payments (Phase 5)", () => {
       expect(pay.error).not.toBeNull();
     });
 
-    it("anonymous visitors read no rates, discounts, holidays or payments (invariant 7)", async () => {
+    it("anonymous visitors read no payments, nor rates or discounts of unpublished properties (invariant 7)", async () => {
+      // Since Phase 6, list prices of *published* properties and the holidays are public (public page);
+      // this organization's property is not published, so nothing of it shows.
       const anon = anonClient();
-      for (const table of ["rate_rules", "length_discounts", "holidays", "booking_payments"] as const) {
-        const { data, error } = await anon.from(table).select("*").limit(1);
+      for (const table of ["rate_rules", "length_discounts"] as const) {
+        const { data, error } = await anon.from(table).select("*").eq("org_id", orgA);
         expect(error?.code ?? (data?.length === 0 ? "empty" : "rows"), table).not.toBe("rows");
       }
+      const payments = await anon.from("booking_payments").select("*").limit(1);
+      expect(payments.error?.code ?? (payments.data?.length === 0 ? "empty" : "rows")).not.toBe("rows");
       expect((await anon.from("booking_payments").insert(payment())).error).not.toBeNull();
     });
   });

@@ -1039,6 +1039,15 @@ export type Database = {
       }
       expire_provisional_bookings: { Args: never; Returns: number }
       org_access_active: { Args: { p_org: string }; Returns: boolean }
+      public_availability: {
+        Args: { p_from: string; p_slug: string; p_to: string }
+        Returns: {
+          ends_on: string
+          starts_on: string
+          unit_id: string
+        }[]
+      }
+      public_property_state: { Args: { p_slug: string }; Returns: string }
       record_subscription_payment: {
         Args: {
           p_amount_cents: number
