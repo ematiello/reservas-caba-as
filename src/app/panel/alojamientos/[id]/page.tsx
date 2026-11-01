@@ -61,6 +61,9 @@ async function PropertyContent({ params, searchParams }: Pick<PageProps<"/panel/
         <Link href="/panel/alojamientos" className="text-sm underline underline-offset-4">
           ← Todos los alojamientos
         </Link>
+        <Link href={`/panel/alojamientos/${p.id}/tarifas`} className="text-sm font-medium underline underline-offset-4">
+          Tarifas y descuentos →
+        </Link>
         {writable ? null : <ReadOnlyNotice />}
         {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 

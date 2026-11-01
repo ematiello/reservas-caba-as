@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/shell/app-shell";
-import { messageFor, Notice } from "@/components/shell/notice";
+import { Notice } from "@/components/shell/notice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,7 +14,7 @@ import { createBlockAction, createBookingAction } from "@/modules/reservas/actio
 import { addDays, isISODate, todayIn } from "@/modules/reservas/calendar";
 import { listBookableUnits, listPropertyOptions } from "@/modules/reservas/queries";
 
-import { MESSAGES, ReadOnlyNotice, selectClass, textareaClass } from "../shared";
+import { bookingMessage, ReadOnlyNotice, selectClass, textareaClass } from "../shared";
 
 export const metadata: Metadata = { title: "Nueva reserva" };
 
@@ -25,7 +25,7 @@ const one = (query: Query, key: string) => (typeof query[key] === "string" ? (qu
 async function NewBookingContent({ searchParams }: Pick<PageProps<"/panel/reservas/nueva">, "searchParams">) {
   const { access, org } = await requireActiveMembership();
   const [query, properties, { writable }] = await Promise.all([searchParams, listPropertyOptions(org.orgId), writeAccess(org)]);
-  const message = messageFor(query, MESSAGES);
+  const message = bookingMessage(query);
   const property = properties.find((p) => p.id === one(query, "property")) ?? properties[0];
   const back = property ? `/panel/reservas?property=${property.id}` : "/panel/reservas";
 

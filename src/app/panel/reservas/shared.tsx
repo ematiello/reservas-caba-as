@@ -1,4 +1,4 @@
-import { Notice } from "@/components/shell/notice";
+import { messageFor, Notice } from "@/components/shell/notice";
 import type { BookingStatus } from "@/modules/reservas/calendar";
 
 export { selectClass, textareaClass } from "../alojamientos/shared";
@@ -19,7 +19,28 @@ export const MESSAGES: Record<string, string> = {
   transicion: "Ese cambio de estado no está permitido.",
   fechas: "La salida tiene que ser posterior al ingreso.",
   escritura: "No se pudo guardar. Revisá que la cuenta esté activa.",
+  estadia_minima: "Las tarifas de esas fechas piden una estadía más larga.",
+  precio: "Precio calculado y congelado.",
+  sin_tarifa: "Falta tarifa para alguna noche: cargá una tarifa base en el establecimiento.",
+  pago: "Pago registrado.",
+  devolucion: "Devolución registrada.",
+  anulado: "Pago anulado: ya no cuenta para el saldo.",
+  sena: "Seña actualizada.",
+  pago_invalido: "Revisá el pago: importe mayor a cero, fecha válida, concepto y medio.",
+  pago_rechazado: "No se pudo registrar el pago (las devoluciones las registra el propietario o un administrador).",
+  anulacion_rechazada: "No se pudo anular: solo el propietario o un administrador, y una sola vez.",
+  sin_permiso: "Solo el propietario o un administrador pueden hacer eso.",
+  sena_invalida: "La seña tiene que ser un importe entre cero y el total de la reserva.",
 };
+
+/** The ?ok= / ?error= message; the minimum stay carries the required nights in ?minimo=. */
+export function bookingMessage(query: Record<string, string | string[] | undefined>) {
+  const minimo = typeof query.minimo === "string" && /^\d+$/.test(query.minimo) ? query.minimo : null;
+  if (query.error === "estadia_minima" && minimo) {
+    return { tone: "error" as const, text: `Las tarifas de esas fechas piden una estadía mínima de ${minimo} noches.` };
+  }
+  return messageFor(query, MESSAGES);
+}
 
 export const STATUS_LABEL: Record<BookingStatus, string> = {
   provisional: "Provisional",

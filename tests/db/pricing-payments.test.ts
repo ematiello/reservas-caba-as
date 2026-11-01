@@ -198,6 +198,11 @@ describe.skipIf(skipDb)("rates and guest payments (Phase 5)", () => {
       expect(data).toEqual({ currency: "ARS", recorded_by: operatorA.id, voided_at: null });
     });
 
+    it("refunds (money going out) are recorded only by owner or admin", async () => {
+      expect((await operatorA.client.from("booking_payments").insert(payment({ kind: "refund", amount_cents: 1 }))).error).not.toBeNull();
+      expect((await adminA.client.from("booking_payments").insert(payment({ kind: "refund", amount_cents: 1 }))).error).toBeNull();
+    });
+
     it("the client cannot set the author, the currency or a voided date", async () => {
       expect((await ownerA.client.from("booking_payments").insert(payment({ recorded_by: ownerB.id }))).error).not.toBeNull();
       expect((await ownerA.client.from("booking_payments").insert(payment({ currency: "USD" }))).error).not.toBeNull();

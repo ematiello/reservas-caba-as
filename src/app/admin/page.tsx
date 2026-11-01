@@ -120,6 +120,9 @@ async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchP
           <Link href="/admin/planes" className={buttonVariants({ variant: "outline" })}>
             Planes y ajustes
           </Link>
+          <Link href="/admin/feriados" className={buttonVariants({ variant: "outline" })}>
+            Feriados
+          </Link>
         </div>
         {query.error === "revision" ? (
           <Notice tone="error">
