@@ -77,7 +77,7 @@ test.describe("bookings", () => {
     await page.getByLabel("Email").fill(owner.email);
     await page.getByLabel("Contraseña").fill(owner.password);
     await page.getByRole("button", { name: "Ingresar" }).click();
-    await visible(page.getByRole("link", { name: "Reservas", exact: true })).click();
+    await page.getByRole("navigation", { name: "Panel" }).getByRole("link", { name: "Reservas", exact: true }).click();
     await expect(visible(page.getByRole("link", { name: "Nueva reserva o bloqueo" }))).toBeVisible();
 
     // Book.

@@ -6,10 +6,10 @@ Objetivo: que `/{slug}` llegue a Lighthouse móvil ≥ 90 y que el panel, la adm
 - S2. Usuario (L1): "diseñar la parte de administracion para el superadmin y los propietarios igual que la pagina publica. Le demos diseño porque ahora no tiene nada de css y se ve horrible." Alcance: `/panel/**`, `/admin/**` y `/auth/**` con la paleta, las tipografías (Montserrat y Lato) y el logo de la identidad; mobile-first; sin cambiar comportamiento ni textos funcionales.
 
 ## Tasks
-- T1 (S1) Ficha: lecturas en paralelo y sin duplicar por pedido; medir con Lighthouse. Ruta: inline. Código hecho; Lighthouse pendiente.
-- T2 (S2) Tema global de marca (tokens, fuentes en el layout raíz, arreglo de `--font-sans`) y nuevo `AppShell` con logo y navegación por área. Ruta: inline. HECHA.
-- T3 (S2) Ajuste de páginas: selects, áreas de texto, grilla de ocupación, avisos e ingreso con la marca. Ruta: inline. HECHA.
-- T4 (S1,S2) e2e completos, capturas y Lighthouse. Ruta: inline. Capturas HECHAS (escritorio y móvil); e2e y Lighthouse pendientes.
+- T1 (S1) Ficha: lecturas en paralelo y sin duplicar por pedido; medir con Lighthouse. Ruta: inline. HECHA en `f01014e`.
+- T2 (S2) Tema global de marca (tokens, fuentes en el layout raíz, arreglo de `--font-sans`) y nuevo `AppShell` con logo y navegación por área. Ruta: inline. HECHA en `c4f517a`.
+- T3 (S2) Ajuste de páginas: selects, áreas de texto, grilla de ocupación, avisos e ingreso con la marca. Ruta: inline. HECHA en `c4f517a` y `6777760`.
+- T4 (S1,S2) e2e completos, capturas y Lighthouse. Ruta: inline. HECHA: capturas, e2e y Lighthouse (L9).
 
 ## Log
 - L1 (2026-11-01, usuario): "Optimizar la ficha y diseñar la parte de administracion para el superadmin y los propietarios igual que la pagina publica. Le demos diseño porque ahora no tiene nada de css y se ve horrible."
@@ -19,3 +19,5 @@ Objetivo: que `/{slug}` llegue a Lighthouse móvil ≥ 90 y que el panel, la adm
 - L5: T1: `resolve()` lee el estado en vivo y el contenido cacheado en paralelo (antes, en serie) y va envuelto en `cache()` de React, así metadatos y página comparten una sola lectura por pedido. El contenido solo se muestra si el estado es "published" (invariante 6 intacta). Antes del cambio: TTFB ~0,21 s y respuesta completa 0,64 a 2,3 s.
 - L6: T2/T3: la marca pasa a ser el tema global (`:root`); `.brand` queda para el fondo arena de lo público. `AppShell` lee la sesión con `getAccess()` (cacheada) solo para mostrar las pestañas que el usuario puede abrir (Equipo y Suscripción solo para propietarios; pestañas de administración solo para superadmin); cada página sigue autorizando. Se quitaron las props `email`, `showAdminLink` y `showPanelLink`. Botones en píldora con Montserrat, entradas y selects con borde arena y foco oliva, tarjetas con sombra suave, avisos y grilla de ocupación en colores de la marca, ingreso con logo y sierras. Verificado: lint, typecheck, Vitest 290/290, capturas de 13 pantallas en escritorio y móvil con cuentas de prueba.
 - L7: El sistema cortó por falta de memoria el servidor de desarrollo y la corrida de e2e (el build del e2e terminó con "build worker exited with code: 1"). Quedan pendientes: build de producción, e2e completos y Lighthouse de la ficha.
+- L8 (usuario, 2026-11-02): "corré los e2e y el lighthouse"
+- L9: Build de producción OK (la falla anterior fue la memoria). e2e: dos selectores chocaban con las pestañas nuevas ("Alojamientos" y "Reservas" aparecían dos veces); se acotaron a la navegación "Panel". Resultado: 68/68 en verde entre corridas (las fallas restantes de la primera corrida eran "Request rate limit reached" de Supabase Auth y pasaron al repetirlas). Lighthouse móvil sobre el build de producción: portada 99/100/100; `/{slug}` 92, 91 y 91 (con fechas) / 100 / 91 (antes 61 a 84); `/buscar` 93/100/63; ingreso 99/100/63. El SEO 91 de la ficha es la descripción que Next transmite al final para navegadores (a Googlebot se la da en el `<head>`); el 63 de `/buscar` y del ingreso es el `noindex` intencional.

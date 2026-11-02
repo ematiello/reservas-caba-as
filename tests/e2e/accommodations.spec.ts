@@ -86,7 +86,7 @@ test.describe("accommodations", () => {
 
   test("the owner creates and publishes a property with two units and photos", async ({ page }) => {
     await login(page, "/panel");
-    await page.getByRole("link", { name: "Alojamientos" }).click();
+    await page.getByRole("navigation", { name: "Panel" }).getByRole("link", { name: "Alojamientos" }).click();
 
     await page.getByLabel("Nombre del establecimiento").fill(propertyName);
     await page.getByRole("button", { name: "Crear establecimiento" }).click();
