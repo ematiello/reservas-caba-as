@@ -75,7 +75,7 @@ export function cellClass(status: BookingStatus, kind: "booking" | "block"): str
 export function ReadOnlyNotice() {
   return (
     <Notice tone="warning">
-      La cuenta está suspendida o vencida: el calendario queda en solo lectura y los datos se conservan.
+      La cuenta está suspendida, vencida, dada de baja o desactivada: el calendario queda en solo lectura y los datos se conservan.
     </Notice>
   );
 }

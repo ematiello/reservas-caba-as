@@ -69,7 +69,7 @@ test.describe("subscriptions", () => {
     await page.getByLabel(`Plan para ${orgName}`).selectOption(plan!.id);
     await page.getByRole("button", { name: `Aprobar ${orgName}` }).click();
 
-    await expect(page.getByRole("link", { name: `Suscripción de ${orgName}` })).toBeVisible();
+    await expect(page.getByRole("link", { name: `Gestionar ${orgName}` })).toBeVisible();
     const { data: sub } = await admin.from("subscriptions").select("status, plan_id").eq("org_id", orgId).single();
     expect(sub).toEqual({ status: "trial", plan_id: plan!.id });
   });
@@ -102,7 +102,7 @@ test.describe("subscriptions", () => {
 
     const ownerPage = await (await browser.newContext()).newPage();
     await login(ownerPage, owner, "/panel");
-    await expect(ownerPage.getByText(/está suspendida o vencida: el panel queda en solo lectura/)).toBeVisible();
+    await expect(ownerPage.getByText(/está suspendida, vencida, dada de baja o desactivada: el panel queda en solo lectura/)).toBeVisible();
     await ownerPage.goto("/panel/suscripcion");
     await expect(ownerPage.getByText(/Tu cuenta está suspendida/)).toBeVisible();
     await ownerPage.context().close();

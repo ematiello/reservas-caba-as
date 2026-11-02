@@ -65,6 +65,7 @@ function ActiveRow({ org, sub }: { org: AdminOrganization; sub: Subscription | u
     <li className="flex flex-wrap items-center justify-between gap-3 py-3">
       <OrgInfo org={org} />
       <div className="flex flex-wrap items-center gap-3 text-sm">
+        {org.disabledAt ? <span className="font-medium text-destructive">Desactivada</span> : null}
         {sub ? (
           <span>
             {STATUS_LABEL[sub.status]} · hasta {formatDate(lastPaidDay(sub.current_period_end))}
@@ -75,9 +76,9 @@ function ActiveRow({ org, sub }: { org: AdminOrganization; sub: Subscription | u
         <Link
           href={`/admin/organizaciones/${org.id}`}
           className={buttonVariants({ size: "sm", variant: "outline" })}
-          aria-label={`Suscripción de ${org.name}`}
+          aria-label={`Gestionar ${org.name}`}
         >
-          Suscripción
+          Gestionar
         </Link>
       </div>
     </li>
