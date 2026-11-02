@@ -69,7 +69,7 @@ test.describe("signed-in users", () => {
 
   test("a regular user cannot reach /admin", async ({ page }) => {
     await login(page, owner, "/admin");
-    await expect(page.getByRole("heading", { name: "This page could not be found." })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "No encontramos esta página" })).toBeVisible();
     await expect(page.getByText("Solicitudes de organizaciones")).toHaveCount(0);
   });
 
