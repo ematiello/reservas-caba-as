@@ -1,0 +1,49 @@
+# Management features for owners and the platform admin
+
+Objective: the missing management screens so the system can be shown to a client. Branch
+`feat/gestion-propietario-superadmin` (stacked on `feat/fase-6-d-diseno-panel`). Delivery: single PR,
+work-unit commits. Runner: Vitest (DB tests against dev) and Playwright.
+
+## Specs
+
+Owner ("Empecemos por esto del propietario"):
+
+- S1 "Editar los datos de la organización. docs/01 lo asigna al owner y no hay pantalla."
+- S2 "Borrar un establecimiento. No hay acción."
+- S3 "Editar una categoría. Solo se crea o se borra."
+- S4 "Ver la auditoría de sus propias acciones."
+- S5 "Cancelar la suscripción."
+- S6 "Cargar feriados. Hoy solo lo hace el superadmin, y eso es una decisión tuya."
+
+Superadmin ("y sigamos por esto del Superadmin"):
+
+- S7 "Reactivar la cuenta con un botón. Hoy solo se reactiva registrando un pago."
+- S8 "Cancelar una suscripción. El estado existe, pero no hay acción."
+- S9 "Ver audit_log. La tabla existe, la invariante exige auditar, y no hay pantalla para leerla."
+- S10 "Ver la operación de una organización (reservas y huéspedes). Hoy no hay forma de hacerlo desde el superadmin."
+- S11 "Dar de alta otro superadmin. Hoy se hace en SQL."
+- S12 "Editar o desactivar una organización."
+
+Decisions taken without asking (the user asked not to be interrupted; listed for review):
+
+- S1: the owner edits the name; the public address (slug) only the platform admin, since it breaks shared links.
+- S2: only without bookings or blocks (bookings are history, no cascade); otherwise "despublicalo". Confirmation checkbox.
+- S5: status `cancelled`, panel read-only, public page "no disponible", data kept; only the platform admin brings it back.
+- S6: national holidays (platform admin) plus holidays per organization (owner/admin); pricing uses both.
+- S7: reactivation without payment until a date the platform admin picks (no invented period).
+- S10: read-only lists; every opening is recorded in the audit log (`view`).
+- S11: by the email of an existing account; removal of others allowed, never oneself.
+- S12: deactivation is an organization flag (`disabled_at`), separate from billing: a payment does not turn it back on.
+
+## Tasks
+
+- [x] T1 S1,S5-S9,S11,S12 DB: migration `20261102165721_management.sql`, `tests/db/management.test.ts` (RED 22 failed → GREEN 22/22), types, pricing holidays per org — inline
+- [x] T2 S1-S6 owner UI: organization, activity, holidays, cancel, delete property, edit category — inline
+- [ ] T3 S7-S12 admin UI: org detail actions, activity, administrators, bookings/guests read-only — inline
+- [ ] T4 e2e and docs — inline
+
+## Log
+
+- L1 (2026-11-02) User request: "Empecemos por esto del propietario:Lo que falta: - Editar los datos de la organización. docs/01 lo asigna al owner y no hay pantalla. - Borrar un establecimiento. No hay acción. - Editar una categoría. Solo se crea o se borra. - Ver la auditoría de sus propias acciones. - Cancelar la suscripción. - Cargar feriados. Hoy solo lo hace el superadmin, y eso es una decisión tuya. y sigamos por esto del Superadmin Lo que falta: - Reactivar la cuenta con un botón. Hoy solo se reactiva registrando un pago. - Cancelar una suscripción. El estado existe, pero no hay acción. - Ver audit_log. La tabla existe, la invariante exige auditar, y no hay pantalla para leerla. - Ver la operación de una organización (reservas y huéspedes). Hoy no hay forma de hacerlo desde el superadmin. - Dar de alta otro superadmin. Hoy se hace en SQL. - Editar o desactivar una organización. Lo hagamos asi puedo mostrarle el sistema a un cliente"
+- L2 RLS already let owners read their audit rows and the platform admin read bookings/guests; the gaps were RPCs, holidays scope and screens.
+- L3 Migration pushed to dev; DB test 22/22. A RED run left a national holiday behind (column missing then); the test now clears it first.
