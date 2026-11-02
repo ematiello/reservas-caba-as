@@ -6,7 +6,7 @@ import { publicMediaUrl, type Media } from "@/modules/alojamientos/queries";
 export function ReadOnlyNotice() {
   return (
     <Notice tone="warning">
-      La cuenta está suspendida o vencida: los alojamientos quedan en solo lectura y los datos se conservan.
+      La cuenta está suspendida, vencida o desactivada: el panel queda en solo lectura y los datos se conservan.
     </Notice>
   );
 }
@@ -16,6 +16,11 @@ export const MESSAGES: Record<string, string> = {
   publicado: "Establecimiento publicado.",
   despublicado: "El establecimiento ya no es público.",
   categoria: "Categoría agregada.",
+  categoria_guardada: "Categoría guardada.",
+  establecimiento_borrado: "Establecimiento eliminado.",
+  confirmar_borrado: "Marcá la confirmación para eliminar el establecimiento.",
+  establecimiento_con_reservas:
+    "No se puede eliminar: tiene reservas o bloqueos cargados. Despublicalo para que deje de verse en la página pública.",
   categoria_borrada: "Categoría eliminada. Sus unidades quedaron sin categoría.",
   unidad: "Unidad agregada.",
   unidad_borrada: "Unidad eliminada.",

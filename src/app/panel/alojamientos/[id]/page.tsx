@@ -14,7 +14,9 @@ import {
   createCategoryAction,
   createUnitAction,
   deleteCategoryAction,
+  deletePropertyAction,
   setPropertyPublishedAction,
+  updateCategoryAction,
   updatePropertyAction,
 } from "@/modules/alojamientos/actions";
 import { getProperty } from "@/modules/alojamientos/queries";
@@ -240,17 +242,37 @@ async function PropertyContent({ params, searchParams }: Pick<PageProps<"/panel/
             {categories.length ? (
               <ul className="divide-y">
                 {categories.map((c) => (
-                  <li key={c.id} className="flex items-center justify-between gap-2 py-2">
-                    <span>{c.name}</span>
+                  <li key={c.id} className="flex flex-wrap items-end justify-between gap-2 py-2">
                     {canEdit ? (
-                      <form action={deleteCategoryAction}>
-                        <input type="hidden" name="propertyId" value={p.id} />
-                        <input type="hidden" name="categoryId" value={c.id} />
-                        <Button type="submit" size="sm" variant="outline" aria-label={`Eliminar categoría ${c.name}`}>
-                          Eliminar
-                        </Button>
-                      </form>
-                    ) : null}
+                      <>
+                        <form action={updateCategoryAction} className="flex flex-1 flex-wrap items-end gap-2">
+                          <input type="hidden" name="propertyId" value={p.id} />
+                          <input type="hidden" name="categoryId" value={c.id} />
+                          <input type="hidden" name="description" value={c.description} />
+                          <Input
+                            name="name"
+                            defaultValue={c.name}
+                            required
+                            minLength={2}
+                            maxLength={80}
+                            aria-label={`Nombre de la categoría ${c.name}`}
+                            className="max-w-xs"
+                          />
+                          <Button type="submit" size="sm" variant="outline">
+                            Guardar
+                          </Button>
+                        </form>
+                        <form action={deleteCategoryAction}>
+                          <input type="hidden" name="propertyId" value={p.id} />
+                          <input type="hidden" name="categoryId" value={c.id} />
+                          <Button type="submit" size="sm" variant="outline" aria-label={`Eliminar categoría ${c.name}`}>
+                            Eliminar
+                          </Button>
+                        </form>
+                      </>
+                    ) : (
+                      <span>{c.name}</span>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -271,6 +293,30 @@ async function PropertyContent({ params, searchParams }: Pick<PageProps<"/panel/
             ) : null}
           </CardContent>
         </Card>
+
+        {canEdit ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Eliminar establecimiento</CardTitle>
+              <CardDescription>
+                Borra el establecimiento con sus unidades, tarifas y fotos. Solo se puede si no tiene reservas ni
+                bloqueos; si los tiene, despublicalo.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form action={deletePropertyAction} className="flex flex-wrap items-center gap-3">
+                <input type="hidden" name="propertyId" value={p.id} />
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="confirm" required />
+                  Entiendo que no se puede deshacer
+                </label>
+                <Button type="submit" variant="destructive">
+                  Eliminar establecimiento
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </AppShell>
   );

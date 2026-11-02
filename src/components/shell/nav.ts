@@ -35,9 +35,15 @@ export function shellNavigation(access: Pick<Access, "isPlatformAdmin" | "member
       { href: "/panel/huespedes", label: "Huéspedes" },
       { href: "/panel/alojamientos", label: "Alojamientos" },
     );
-    // Team and subscription are the owner's (requireOwnerAccess).
+    // Holidays are setup (owner and admin, requireManagerAccess); team, subscription and the
+    // organization itself are the owner's (requireOwnerAccess).
+    if (active.role !== "operator") panel.push({ href: "/panel/feriados", label: "Feriados" });
     if (active.role === "owner") {
-      panel.push({ href: "/panel/equipo", label: "Equipo" }, { href: "/panel/suscripcion", label: "Suscripción" });
+      panel.push(
+        { href: "/panel/equipo", label: "Equipo" },
+        { href: "/panel/suscripcion", label: "Suscripción" },
+        { href: "/panel/organizacion", label: "Organización" },
+      );
     }
   }
 
@@ -46,6 +52,8 @@ export function shellNavigation(access: Pick<Access, "isPlatformAdmin" | "member
         { href: "/admin", label: "Organizaciones", exact: true, also: ["/admin/organizaciones"] },
         { href: "/admin/planes", label: "Planes y ajustes" },
         { href: "/admin/feriados", label: "Feriados" },
+        { href: "/admin/actividad", label: "Actividad" },
+        { href: "/admin/administradores", label: "Administradores" },
       ]
     : null;
 

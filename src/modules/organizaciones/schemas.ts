@@ -99,3 +99,9 @@ export function orgFromMetadata(meta: unknown): { orgName: string; slug: string 
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+
+// Editing an existing organization: the owner changes the name; the platform admin also the address.
+export const organizationNameSchema = z.object({ orgName: orgFields.orgName });
+export const organizationEditSchema = z
+  .object({ orgName: orgFields.orgName, slug: z.string().trim().min(1, "Ingresá la dirección pública.") })
+  .transform(withResolvedSlug);
