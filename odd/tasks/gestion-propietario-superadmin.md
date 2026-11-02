@@ -39,11 +39,14 @@ Decisions taken without asking (the user asked not to be interrupted; listed for
 
 - [x] T1 S1,S5-S9,S11,S12 DB: migration `20261102165721_management.sql`, `tests/db/management.test.ts` (RED 22 failed → GREEN 22/22), types, pricing holidays per org — inline
 - [x] T2 S1-S6 owner UI: organization, activity, holidays, cancel, delete property, edit category — inline
-- [ ] T3 S7-S12 admin UI: org detail actions, activity, administrators, bookings/guests read-only — inline
-- [ ] T4 e2e and docs — inline
+- [x] T3 S4,S7-S12 admin UI: org detail actions, activity, administrators, bookings/guests read-only; audit triggers on properties, categories and units (`20261102204243_accommodations_audit.sql`, DB test 23/23) — inline
+- [x] T4 e2e (`tests/e2e/management.spec.ts`, with `subscriptions.spec.ts`: 16/16 mobile and desktop) and docs (docs/03, D27, CLAUDE.md) — inline
 
 ## Log
 
 - L1 (2026-11-02) User request: "Empecemos por esto del propietario:Lo que falta: - Editar los datos de la organización. docs/01 lo asigna al owner y no hay pantalla. - Borrar un establecimiento. No hay acción. - Editar una categoría. Solo se crea o se borra. - Ver la auditoría de sus propias acciones. - Cancelar la suscripción. - Cargar feriados. Hoy solo lo hace el superadmin, y eso es una decisión tuya. y sigamos por esto del Superadmin Lo que falta: - Reactivar la cuenta con un botón. Hoy solo se reactiva registrando un pago. - Cancelar una suscripción. El estado existe, pero no hay acción. - Ver audit_log. La tabla existe, la invariante exige auditar, y no hay pantalla para leerla. - Ver la operación de una organización (reservas y huéspedes). Hoy no hay forma de hacerlo desde el superadmin. - Dar de alta otro superadmin. Hoy se hace en SQL. - Editar o desactivar una organización. Lo hagamos asi puedo mostrarle el sistema a un cliente"
 - L2 RLS already let owners read their audit rows and the platform admin read bookings/guests; the gaps were RPCs, holidays scope and screens.
 - L3 Migration pushed to dev; DB test 22/22. A RED run left a national holiday behind (column missing then); the test now clears it first.
+- L4 The owner activity showed no property changes: properties, categories and units had no audit trigger. Added them (additive migration); media stays unaudited. The DB test was written after the push, so no RED was observed for it.
+- L5 Reactivation asks for the last active day; the action sends the next day because the period end is exclusive. Reading bookings or guests as admin writes the `view` row first and fails closed.
+- L6 Checks: typecheck, lint (0 errors), `vitest run src` 204/204, DB management 23/23, e2e management + subscriptions 16/16.
