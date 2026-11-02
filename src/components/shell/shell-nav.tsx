@@ -3,20 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export type NavItem = {
-  href: string;
-  label: string;
-  /** Active only on the exact path (section home pages). */
-  exact?: boolean;
-  /** Other path prefixes that belong to this item. */
-  also?: string[];
-};
-
-function isActive(item: NavItem, path: string): boolean {
-  const under = (prefix: string) => path === prefix || path.startsWith(`${prefix}/`);
-  if (item.also?.some(under)) return true;
-  return item.exact ? path === item.href : under(item.href);
-}
+import { isActive, type NavItem } from "./nav";
 
 // Section tabs of the private areas. The admin area and the owner panel each show their own tabs,
 // plus a link to switch to the other area when the user has both.
@@ -51,7 +38,7 @@ export function ShellNav({ panel, admin }: { panel: NavItem[] | null; admin: Nav
           <li className="ml-auto shrink-0 pl-3">
             <Link
               href={other.href}
-              className="mb-1.5 block rounded-full bg-brand-ochre px-3.5 py-1.5 font-semibold text-brand-slate hover:bg-[#d9913a] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+              className="mb-1.5 block rounded-full bg-brand-ochre px-3.5 py-1.5 font-semibold text-brand-slate hover:bg-brand-ochre-deep focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             >
               {other.label}
             </Link>

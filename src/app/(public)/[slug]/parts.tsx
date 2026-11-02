@@ -52,7 +52,7 @@ const AMENITY_ICON: Record<string, LucideIcon> = {
 const pill =
   "font-display inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none";
 export const greenButton = `${pill} bg-brand-green text-white hover:bg-brand-green-deep focus-visible:ring-brand-ochre`;
-const ochreButton = `${pill} bg-brand-ochre text-brand-slate hover:bg-[#d9913a] focus-visible:ring-brand-green`;
+const ochreButton = `${pill} bg-brand-ochre text-brand-slate hover:bg-brand-ochre-deep focus-visible:ring-brand-green`;
 
 /* eslint-disable @next/next/no-img-element -- Storage photos are resized in the browser before upload; no optimizer (images.unoptimized). */
 
@@ -68,7 +68,7 @@ export function Hero({ property }: { property: PublicProperty }) {
         {cover ? (
           <>
             <img src={cover.url} alt={cover.alt} fetchPriority="high" className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#163f32]/85 via-[#163f32]/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-green-deep/85 via-brand-green-deep/30 to-transparent" />
           </>
         ) : (
           <Sierras />
@@ -94,7 +94,7 @@ export function StayForm({ today, values, error }: { today: string; values: Part
       method="get"
       action="#disponibilidad"
       aria-describedby={error ? "stay-error" : undefined}
-      className="grid gap-3 rounded-2xl bg-white p-4 shadow-[0_12px_32px_-18px_rgba(22,63,50,0.45)] ring-1 ring-[var(--border)] sm:grid-cols-[1fr_1fr_8rem_auto] sm:items-end"
+      className="grid gap-3 rounded-2xl bg-white p-4 shadow-raised ring-1 ring-[var(--border)] sm:grid-cols-[1fr_1fr_8rem_auto] sm:items-end"
     >
       <label className="grid gap-1 text-sm font-semibold">
         Ingreso
@@ -112,7 +112,7 @@ export function StayForm({ today, values, error }: { today: string; values: Part
         Ver disponibilidad
       </button>
       {error ? (
-        <p id="stay-error" role="alert" className="text-sm font-semibold text-[#9b2c1d] sm:col-span-4">
+        <p id="stay-error" role="alert" className="text-sm font-semibold text-destructive sm:col-span-4">
           Revisá las fechas: el ingreso desde hoy, la salida después del ingreso y hasta 365 noches.
         </p>
       ) : null}

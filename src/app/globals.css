@@ -55,6 +55,17 @@
   --color-brand-sand: var(--brand-sand);
   --color-brand-paper: var(--brand-paper);
   --color-brand-slate: var(--brand-slate);
+  --color-brand-ochre-deep: var(--brand-ochre-deep);
+  --color-brand-ochre-ink: var(--brand-ochre-ink);
+  /* Soft brand-green shadows: cards, and the raised search and stay forms. */
+  --shadow-card: 0 10px 28px -22px color-mix(in oklab, var(--brand-green-deep) 50%, transparent);
+  --shadow-raised: 0 12px 32px -18px color-mix(in oklab, var(--brand-green-deep) 45%, transparent);
+  /* Occupancy grid statuses (panel calendar and its legend). */
+  --color-status-provisional: var(--status-provisional);
+  --color-status-provisional-ink: var(--status-provisional-ink);
+  --color-status-confirmed: var(--status-confirmed);
+  --color-status-block: var(--status-block);
+  --color-status-cleaning-line: var(--status-cleaning-line);
   --font-display: var(--font-montserrat);
   --font-body: var(--font-lato);
 }
@@ -69,6 +80,13 @@
   --brand-sand: #f4e9db;
   --brand-paper: #fbf7f1;
   --brand-slate: #334048;
+  --brand-ochre-deep: #d9913a;
+  --brand-ochre-ink: #6b4a1c;
+  --status-provisional: #f6d8a8;
+  --status-provisional-ink: #5a3d12;
+  --status-confirmed: #cfe0bd;
+  --status-block: #cfd5d9;
+  --status-cleaning-line: #dccbb2;
 
   --background: var(--brand-paper);
   --foreground: var(--brand-slate);

@@ -11,6 +11,7 @@ import {
   type PublicProperty,
   quotePublicStay,
 } from "@/modules/publico/queries";
+import { resolvePublicPage } from "@/modules/publico/resolve";
 import { BRAND, publicRobots, siteUrl } from "@/modules/publico/seo";
 import { isUnitFree, stayQuerySchema, whatsappLink } from "@/modules/publico/stay";
 import { addDays, todayIn } from "@/modules/reservas/calendar";
@@ -21,18 +22,10 @@ import { Gallery, greenButton, Hero, LodgingJsonLd, StayForm, StayResults, Unava
 // visitor's dates, and WhatsApp. It never creates a booking. A suspended account shows "no disponible"
 // with noindex (invariant 6); drafts and unknown slugs are 404.
 
-type Resolved = { state: "missing" } | { state: "unavailable" } | { state: "published"; property: PublicProperty };
-
-// Once per request (metadata and page share it). The content is read only after the live state says
-// "published": unknown slugs never fill the cache, and a suspended account shows "no disponible"
-// even if the content read would fail.
-const resolve = cache(async (slug: string): Promise<Resolved> => {
-  const state = await getPageState(slug);
-  if (state !== "published") return { state };
-  // The cache may still hold a miss from before the page went live: read it fresh then.
-  const property = (await getPublicProperty(slug)) ?? (await loadPublicProperty(slug));
-  return property ? { state, property } : { state: "missing" };
-});
+// Once per request: metadata and page share it. The rules live in resolvePublicPage (tested).
+const resolve = cache((slug: string) =>
+  resolvePublicPage(slug, { state: getPageState, cached: getPublicProperty, fresh: loadPublicProperty }),
+);
 
 function excerpt(text: string, max = 160): string {
   const flat = text.replace(/\s+/g, " ").trim();

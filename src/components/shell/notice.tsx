@@ -4,7 +4,7 @@ export function Notice({ tone, children }: { tone: "success" | "error" | "warnin
   const styles = {
     success: "border-brand-olive/50 bg-brand-olive/12 text-brand-green-deep",
     error: "border-destructive/40 bg-destructive/10 text-destructive",
-    warning: "border-brand-ochre/60 bg-brand-ochre/15 text-[#6b4a1c]",
+    warning: "border-brand-ochre/60 bg-brand-ochre/15 text-brand-ochre-ink",
   }[tone];
   return (
     <p role={tone === "error" ? "alert" : "status"} className={`rounded-xl border p-3 text-sm ${styles}`}>

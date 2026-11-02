@@ -3,10 +3,10 @@ import type { ReactNode } from "react";
 
 import { BrandLogo } from "@/components/brand/logo";
 import { logoutAction } from "@/modules/organizaciones/actions";
-import { resolvePanelState } from "@/modules/organizaciones/panel-state";
 import { getAccess } from "@/modules/organizaciones/session";
 
-import { ShellNav, type NavItem } from "./shell-nav";
+import { shellNavigation } from "./nav";
+import { ShellNav } from "./shell-nav";
 
 type AppShellProps = { title: string; children: ReactNode };
 
@@ -14,36 +14,14 @@ type AppShellProps = { title: string; children: ReactNode };
 // The navigation only shows what the user can open; every page still authorizes itself.
 export async function AppShell({ title, children }: AppShellProps) {
   const access = await getAccess();
-  const state = access ? resolvePanelState(access.memberships) : null;
-  const active = state?.kind === "active" ? state.membership : null;
-  // A platform admin without a business of their own only has the admin area.
-  const adminOnly = Boolean(access?.isPlatformAdmin && !access.memberships.length);
-
-  const panel: NavItem[] = [{ href: "/panel", label: "Inicio", exact: true }];
-  if (active) {
-    panel.push(
-      { href: "/panel/reservas", label: "Reservas" },
-      { href: "/panel/huespedes", label: "Huéspedes" },
-      { href: "/panel/alojamientos", label: "Alojamientos" },
-    );
-    if (active.role === "owner") {
-      panel.push({ href: "/panel/equipo", label: "Equipo" }, { href: "/panel/suscripcion", label: "Suscripción" });
-    }
-  }
-  const admin: NavItem[] | null = access?.isPlatformAdmin
-    ? [
-        { href: "/admin", label: "Organizaciones", exact: true, also: ["/admin/organizaciones"] },
-        { href: "/admin/planes", label: "Planes y ajustes" },
-        { href: "/admin/feriados", label: "Feriados" },
-      ]
-    : null;
+  const nav = shellNavigation(access);
 
   return (
     <div className="flex flex-1 flex-col">
       <header className="bg-brand-green-deep text-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2">
           <Link
-            href={adminOnly ? "/admin" : "/panel"}
+            href={nav.home}
             aria-label="Reservas Traslasierra, inicio del panel"
             className="rounded-md focus-visible:ring-2 focus-visible:ring-brand-ochre focus-visible:outline-none"
           >
@@ -65,7 +43,7 @@ export async function AppShell({ title, children }: AppShellProps) {
             </form>
           </div>
         </div>
-        <ShellNav panel={adminOnly ? null : panel} admin={admin} />
+        <ShellNav panel={nav.panel} admin={nav.admin} />
       </header>
 
       <div className="border-b bg-white">

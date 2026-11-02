@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node -e \"require('node:fs').rmSync('.next/dev', { recursive: true, force: true })\" && next dev",
     "build": "next build",
     "start": "node scripts/start-standalone.mjs",
     "package:hostinger": "node scripts/package-hostinger.mjs",
