@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { createClient, isAuthRetryableFetchError, type SupabaseClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -34,7 +34,25 @@ export function anonClient(): SupabaseClient {
 
 export type TestUser = { id: string; email: string; password: string; client: SupabaseClient };
 
+const RETRY_DELAYS_MS = [1_000, 3_000, 9_000];
+
+/**
+ * Retries only network-level failures (AuthRetryableFetchError: "fetch failed"), which a short
+ * connection drop causes. Every attempt uses a fresh email, so a request that reached the server
+ * before the drop cannot collide. Real API errors (rate limit, validation) still fail at once.
+ */
 export async function createTestUser(admin: SupabaseClient, label: string): Promise<TestUser> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await createTestUserOnce(admin, label);
+    } catch (error) {
+      if (!isAuthRetryableFetchError(error) || attempt >= RETRY_DELAYS_MS.length) throw error;
+      await new Promise((resolve) => setTimeout(resolve, RETRY_DELAYS_MS[attempt]));
+    }
+  }
+}
+
+async function createTestUserOnce(admin: SupabaseClient, label: string): Promise<TestUser> {
   const email = `rls-${label}-${randomBytes(4).toString("hex")}@example.com`;
   const password = randomBytes(16).toString("hex");
   const created = await admin.auth.admin.createUser({

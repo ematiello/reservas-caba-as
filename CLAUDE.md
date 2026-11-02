@@ -23,7 +23,7 @@ npm run typecheck           # next typegen && tsc (LayoutProps/PageProps son tip
 npm test                    # Vitest (src/**/*.test.ts, tests/db/**/*.test.ts). Las pruebas de BD y los e2e con datos necesitan las 3 claves del proyecto dev en .env.local (incluida SUPABASE_SECRET_KEY) y FALLAN si faltan; SKIP_DB_TESTS=1 las saltea a propósito
 npx vitest run src/lib/supabase/env.test.ts   # un archivo
 npx vitest run -t "fails fast"                 # un test por nombre
-npm run test:e2e            # Playwright: build + server standalone en :3100, móvil y escritorio. Falla si :3100 está ocupado (puede ser un build viejo); E2E_REUSE_SERVER=1 reutiliza un server recién levantado del build actual
+npm run test:e2e            # Playwright: build + server standalone en :3100, móvil y escritorio. Falla si :3100 está ocupado (puede ser un build viejo); E2E_REUSE_SERVER=1 reutiliza un server recién levantado del build actual. Antes del build, `scripts/e2e-preflight.mjs` corta en segundos si Supabase no responde; corre con 2 workers (más agotan la memoria y tiran el server), `E2E_WORKERS=n` lo cambia. `createTestUser` reintenta solo los cortes de red
 npm run build               # build de producción (output: standalone)
 npm start                   # scripts/start-standalone.mjs: copia estáticos y arranca .next/standalone/server.js
 npm run package:hostinger   # tras `npm run build`: arma dist/hostinger/app.tgz para subir a Hostinger (D20)
