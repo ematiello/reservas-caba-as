@@ -8,6 +8,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { messageFor, Notice } from "@/components/shell/notice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { selectClass } from "@/components/ui/native-controls";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
@@ -38,7 +39,6 @@ const MESSAGES: Record<string, string> = {
   suspension_error: "No se pudo suspender: la cuenta ya está suspendida o cancelada.",
 };
 
-const selectClass = "h-9 w-full rounded-md border bg-background px-2 text-sm";
 
 function pesos(cents: number) {
   return (cents / 100).toLocaleString("es-AR", { maximumFractionDigits: 2 });
