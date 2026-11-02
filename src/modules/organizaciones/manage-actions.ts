@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
 
 import { organizationNameSchema } from "./schemas";
 import { requireOwnerAccess } from "./session";
@@ -37,5 +38,6 @@ export async function cancelSubscriptionAction(formData: FormData): Promise<void
   const { error } = await supabase.rpc("cancel_subscription", { p_org: org.orgId });
   if (error) done(SUBSCRIPTION, { error: "baja_error" });
   revalidatePath("/panel", "layout");
+  updateTag(PUBLIC_PROPERTIES_TAG);
   done(SUBSCRIPTION, { ok: "baja" });
 }

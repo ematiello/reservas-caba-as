@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
+import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
 
 import { addDays } from "@/modules/reservas/calendar";
 
@@ -41,6 +42,7 @@ export async function adminUpdateOrganizationAction(formData: FormData): Promise
   });
   if (error) done(path, { error: error.code === "23505" ? "direccion_en_uso" : "organizacion_error" });
   revalidatePath("/admin");
+  updateTag(PUBLIC_PROPERTIES_TAG);
   done(path, { ok: "organizacion" });
 }
 
@@ -53,6 +55,7 @@ export async function setOrganizationDisabledAction(formData: FormData): Promise
   const { error } = await supabase.rpc("set_organization_disabled", { p_org: orgId, p_disabled: disable });
   if (error) done(path, { error: "desactivar_error" });
   revalidatePath("/admin");
+  updateTag(PUBLIC_PROPERTIES_TAG);
   done(path, { ok: disable ? "desactivada" : "activada" });
 }
 
@@ -64,6 +67,7 @@ export async function adminCancelSubscriptionAction(formData: FormData): Promise
   const { error } = await supabase.rpc("cancel_subscription", { p_org: orgId });
   if (error) done(path, { error: "baja_error" });
   revalidatePath("/admin");
+  updateTag(PUBLIC_PROPERTIES_TAG);
   done(path, { ok: "baja" });
 }
 
@@ -78,6 +82,7 @@ export async function reactivateSubscriptionAction(formData: FormData): Promise<
   const { error } = await supabase.rpc("reactivate_subscription", { p_org: orgId, p_until: addDays(lastDay.data, 1) });
   if (error) done(path, { error: error.code === "22023" ? "reactivacion_fecha" : "reactivacion_error" });
   revalidatePath("/admin");
+  updateTag(PUBLIC_PROPERTIES_TAG);
   done(path, { ok: "reactivada" });
 }
 
