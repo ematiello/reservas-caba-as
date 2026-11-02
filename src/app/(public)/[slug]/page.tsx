@@ -1,7 +1,7 @@
 import { Clock, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { cache, Suspense } from "react";
 
 import {
   getOccupied,
@@ -23,13 +23,15 @@ import { Gallery, greenButton, Hero, LodgingJsonLd, StayForm, StayResults, Unava
 
 type Resolved = { state: "missing" } | { state: "unavailable" } | { state: "published"; property: PublicProperty };
 
-async function resolve(slug: string): Promise<Resolved> {
-  const state = await getPageState(slug);
+// Once per request (metadata and page share it). The live state and the cached content are read
+// together; the content is only shown when the state says "published".
+const resolve = cache(async (slug: string): Promise<Resolved> => {
+  const [state, cached] = await Promise.all([getPageState(slug), getPublicProperty(slug)]);
   if (state !== "published") return { state };
   // The cache may still hold a miss from before the page went live: read it fresh then.
-  const property = (await getPublicProperty(slug)) ?? (await loadPublicProperty(slug));
+  const property = cached ?? (await loadPublicProperty(slug));
   return property ? { state, property } : { state: "missing" };
-}
+});
 
 function excerpt(text: string, max = 160): string {
   const flat = text.replace(/\s+/g, " ").trim();
