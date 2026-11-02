@@ -61,7 +61,7 @@ export const CELL_CLASS = {
   checked_in: "bg-brand-green text-white",
   checked_out: "bg-muted text-muted-foreground",
   block: "bg-[#cfd5d9] text-brand-slate",
-  cleaning: "bg-brand-sand",
+  cleaning: "bg-[repeating-linear-gradient(135deg,#f4e9db_0_5px,#dccbb2_5px_7px)]",
 } as const;
 
 export function cellClass(status: BookingStatus, kind: "booking" | "block"): string {

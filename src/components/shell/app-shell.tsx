@@ -8,19 +8,16 @@ import { getAccess } from "@/modules/organizaciones/session";
 
 import { ShellNav, type NavItem } from "./shell-nav";
 
-type AppShellProps = {
-  title: string;
-  /** Short line under the title (for example, the organization or the record being edited). */
-  subtitle?: string;
-  children: ReactNode;
-};
+type AppShellProps = { title: string; children: ReactNode };
 
 // Frame of the private areas (owner panel and platform admin) with the "Reservas Traslasierra" brand.
 // The navigation only shows what the user can open; every page still authorizes itself.
-export async function AppShell({ title, subtitle, children }: AppShellProps) {
+export async function AppShell({ title, children }: AppShellProps) {
   const access = await getAccess();
   const state = access ? resolvePanelState(access.memberships) : null;
   const active = state?.kind === "active" ? state.membership : null;
+  // A platform admin without a business of their own only has the admin area.
+  const adminOnly = Boolean(access?.isPlatformAdmin && !access.memberships.length);
 
   const panel: NavItem[] = [{ href: "/panel", label: "Inicio", exact: true }];
   if (active) {
@@ -46,14 +43,18 @@ export async function AppShell({ title, subtitle, children }: AppShellProps) {
       <header className="bg-brand-green-deep text-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2">
           <Link
-            href={access?.isPlatformAdmin && !access.memberships.length ? "/admin" : "/panel"}
+            href={adminOnly ? "/admin" : "/panel"}
             aria-label="Reservas Traslasierra, inicio del panel"
             className="rounded-md focus-visible:ring-2 focus-visible:ring-brand-ochre focus-visible:outline-none"
           >
             <BrandLogo tone="light" />
           </Link>
           <div className="flex min-w-0 items-center gap-3 text-sm">
-            {access ? <span className="hidden truncate text-brand-sand/85 sm:inline">{access.user.email}</span> : null}
+            {access ? (
+              <span title={access.user.email} className="max-w-[9rem] truncate text-xs text-brand-sand/85 sm:max-w-none sm:text-sm">
+                {access.user.email}
+              </span>
+            ) : null}
             <form action={logoutAction}>
               <button
                 type="submit"
@@ -64,13 +65,12 @@ export async function AppShell({ title, subtitle, children }: AppShellProps) {
             </form>
           </div>
         </div>
-        <ShellNav panel={access?.memberships.length || !access?.isPlatformAdmin ? panel : null} admin={admin} />
+        <ShellNav panel={adminOnly ? null : panel} admin={admin} />
       </header>
 
       <div className="border-b bg-white">
         <div className="mx-auto w-full max-w-6xl px-4 py-5">
           <h1 className="font-heading text-2xl leading-tight font-bold text-brand-green-deep sm:text-3xl">{title}</h1>
-          {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
         </div>
       </div>
 

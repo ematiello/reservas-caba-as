@@ -24,9 +24,6 @@ async function SubscriptionContent() {
   return (
     <AppShell title="Suscripción">
       <div className="grid gap-6">
-        <Link href="/panel" className="text-sm underline underline-offset-4">
-          ← Volver al panel
-        </Link>
         {!sub ? (
           <Notice tone="warning">Tu cuenta todavía no tiene una suscripción asignada.</Notice>
         ) : (

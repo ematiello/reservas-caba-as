@@ -12,6 +12,8 @@ import { requirePlatformAdmin } from "@/modules/organizaciones/session";
 import { formatArs } from "@/modules/suscripciones/billing";
 import { formatDate, lastPaidDay, STATUS_LABEL } from "@/modules/suscripciones/labels";
 import { listPlans, listSubscriptions, type Plan, type Subscription } from "@/modules/suscripciones/queries";
+import { selectClass } from "@/components/ui/native-controls";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Administración" };
 
@@ -38,7 +40,7 @@ function PendingRow({ org, plans }: { org: AdminOrganization; plans: Plan[] }) {
           aria-label={`Plan para ${org.name}`}
           name="planId"
           defaultValue=""
-          className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+          className={cn(selectClass, "h-8 w-auto")}
         >
           <option value="">Sin plan (asignar después)</option>
           {plans.map((p) => (

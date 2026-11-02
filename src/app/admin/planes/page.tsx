@@ -82,9 +82,6 @@ async function PlansContent({ searchParams }: Pick<PageProps<"/admin/planes">, "
   return (
     <AppShell title="Planes y ajustes">
       <div className="grid gap-6">
-        <Link href="/admin" className="text-sm underline underline-offset-4">
-          ← Volver a administración
-        </Link>
         {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 
         <Card>

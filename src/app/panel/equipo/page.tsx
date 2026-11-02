@@ -13,6 +13,8 @@ import {
 } from "@/modules/organizaciones/team-actions";
 
 import { InviteForm } from "./invite-form";
+import { selectClass } from "@/components/ui/native-controls";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Equipo" };
 
@@ -59,7 +61,7 @@ async function TeamContent() {
                           name="role"
                           defaultValue={member.role}
                           aria-label={`Rol de ${member.fullName}`}
-                          className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                          className={cn(selectClass, "h-8 w-auto")}
                         >
                           <option value="admin">Administrador</option>
                           <option value="operator">Operador</option>

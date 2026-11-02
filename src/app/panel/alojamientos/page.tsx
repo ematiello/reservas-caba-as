@@ -29,9 +29,6 @@ async function PropertiesContent({ searchParams }: Pick<PageProps<"/panel/alojam
   return (
     <AppShell title="Alojamientos">
       <div className="grid gap-6">
-        <Link href="/panel" className="text-sm underline underline-offset-4">
-          ← Volver al panel
-        </Link>
         {writable ? null : <ReadOnlyNotice />}
         {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
 

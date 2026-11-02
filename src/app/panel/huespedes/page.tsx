@@ -21,9 +21,6 @@ async function GuestsContent({ searchParams }: Pick<PageProps<"/panel/huespedes"
   return (
     <AppShell title="Huéspedes">
       <div className="grid gap-4">
-        <Link href="/panel" className="text-sm underline underline-offset-4">
-          ← Volver al panel
-        </Link>
         <form className="flex items-end gap-2" role="search">
           <div className="grid flex-1 gap-1.5">
             <Label htmlFor="q">Buscar por nombre, teléfono o email</Label>

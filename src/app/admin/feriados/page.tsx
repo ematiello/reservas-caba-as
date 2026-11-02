@@ -31,9 +31,6 @@ async function HolidaysContent({ searchParams }: Pick<PageProps<"/admin/feriados
   return (
     <AppShell title="Feriados">
       <div className="grid gap-4">
-        <Link href="/admin" className="text-sm underline underline-offset-4">
-          ← Administración
-        </Link>
         {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
         <Card>
           <CardHeader>
