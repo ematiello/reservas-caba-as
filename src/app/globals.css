@@ -46,6 +46,16 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Brand "Reservas Traslasierra" (public pages only, see .brand). */
+  --color-brand-green: var(--brand-green);
+  --color-brand-green-deep: var(--brand-green-deep);
+  --color-brand-olive: var(--brand-olive);
+  --color-brand-ochre: var(--brand-ochre);
+  --color-brand-sand: var(--brand-sand);
+  --color-brand-paper: var(--brand-paper);
+  --color-brand-slate: var(--brand-slate);
+  --font-display: var(--font-montserrat);
+  --font-body: var(--font-lato);
 }
 
 :root {
@@ -81,6 +91,32 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* "Identidad serrana": Verde Serrano, Verde Oliva, Ocre Sierras, Arena, Pizarra. */
+  --brand-green: #1f5a46;
+  --brand-green-deep: #163f32;
+  --brand-olive: #7a9b58;
+  --brand-ochre: #e5a048;
+  --brand-sand: #f4e9db;
+  --brand-paper: #fbf7f1;
+  --brand-slate: #334048;
+}
+
+/* Public pages: the brand drives the shadcn tokens, the body type and the page ground. */
+.brand {
+  --background: var(--brand-paper);
+  --foreground: var(--brand-slate);
+  --card: #ffffff;
+  --card-foreground: var(--brand-slate);
+  --primary: var(--brand-green);
+  --primary-foreground: #ffffff;
+  --muted: var(--brand-sand);
+  --muted-foreground: #56636b;
+  --border: #e3d6c4;
+  --input: #d6c7b2;
+  --ring: var(--brand-olive);
+  font-family: var(--font-lato), system-ui, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 .dark {

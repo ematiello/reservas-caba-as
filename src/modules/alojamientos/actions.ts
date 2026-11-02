@@ -1,11 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 import { requireManagerAccess } from "@/modules/organizaciones/session";
+import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
 
 // Cross references are enforced by the database, not re-checked here: composite foreign keys make
 // units.category_id belong to the unit's property and media.unit_id to the photo's property
@@ -25,6 +26,8 @@ function fields(formData: FormData): Record<string, string> {
 
 function done(path: string, result: { ok: string } | { error: string }): never {
   revalidatePath(path);
+  // The public pages show this data from a cache: the owner sees their change there right away.
+  updateTag(PUBLIC_PROPERTIES_TAG);
   redirect(`${path}?${"ok" in result ? `ok=${result.ok}` : `error=${result.error}`}`);
 }
 
@@ -249,6 +252,7 @@ export async function registerMediaAction(input: z.input<typeof mediaInput>): Pr
     return { error: "write" };
   }
   revalidatePath(unitId ? unitPath(propertyId, unitId) : propertyPath(propertyId));
+  updateTag(PUBLIC_PROPERTIES_TAG);
   return {};
 }
 
