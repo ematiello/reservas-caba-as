@@ -286,6 +286,37 @@ describe.skipIf(skipDb)("management (owner and platform admin)", () => {
       expect(denied.error?.code).toBe("42501");
     });
 
+    it("audits properties, categories and units, so the owner sees them in the activity", async () => {
+      const property = await admin
+        .from("properties")
+        .insert({ org_id: orgB, name: "Audited", slug: uniqueSlug("aud") })
+        .select("id")
+        .single();
+      expect(property.error).toBeNull();
+      const propertyId = property.data!.id as string;
+      const category = await admin.from("unit_categories").insert({ org_id: orgB, property_id: propertyId, name: "Suites" });
+      expect(category.error).toBeNull();
+      const unit = await admin
+        .from("units")
+        .insert({ org_id: orgB, property_id: propertyId, name: "U1", kind: "cabin", max_guests: 2 });
+      expect(unit.error).toBeNull();
+      expect((await admin.from("properties").delete().eq("id", propertyId)).error).toBeNull();
+
+      const { data, error } = await ownerB.client.rpc("audit_entries", { p_org: orgB, p_limit: 200 });
+      expect(error).toBeNull();
+      const seen = new Set((data as { action: string; table_name: string }[]).map((r) => `${r.action}:${r.table_name}`));
+      for (const key of [
+        "insert:properties",
+        "insert:unit_categories",
+        "insert:units",
+        "delete:properties",
+        "delete:unit_categories",
+        "delete:units",
+      ]) {
+        expect(seen.has(key), key).toBe(true);
+      }
+    });
+
     it("gives the platform admin the log of every organization", async () => {
       const { data, error } = await superadmin.client.rpc("audit_entries", { p_limit: 200 });
       expect(error).toBeNull();

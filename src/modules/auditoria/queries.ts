@@ -26,3 +26,22 @@ export async function listAuditEntries(orgId: string | null, before?: number): P
 export function cursorFrom(value: string | string[] | undefined): number | undefined {
   return typeof value === "string" && /^\d{1,18}$/.test(value) ? Number(value) : undefined;
 }
+
+/**
+ * Records that the platform admin opened an organization's bookings or guests. Fails closed: if the
+ * audit row cannot be written, the page does not render the data.
+ */
+export async function logAdminAccess(orgId: string, area: "bookings" | "guests"): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("log_admin_access", { p_org: orgId, p_area: area });
+  if (error) throw new Error("Could not record the access");
+}
+
+export type PlatformAdmin = Database["public"]["Functions"]["list_platform_admins"]["Returns"][number];
+
+export async function listPlatformAdmins(): Promise<PlatformAdmin[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_platform_admins");
+  if (error) throw new Error("Could not load the platform admins");
+  return data;
+}

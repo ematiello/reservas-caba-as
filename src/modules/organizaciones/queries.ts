@@ -11,6 +11,7 @@ export type AdminOrganization = {
   status: OrgStatus;
   createdAt: string;
   approvedAt: string | null;
+  disabledAt: string | null;
   ownerName: string;
 };
 
@@ -58,7 +59,7 @@ export async function listOrganizationsForAdmin(): Promise<AdminOrganization[]> 
 
   const { data: orgs, error } = await supabase
     .from("organizations")
-    .select("id, name, slug, status, created_at, approved_at")
+    .select("id, name, slug, status, created_at, approved_at, disabled_at")
     .order("created_at", { ascending: false });
   if (error) throw new Error("Could not load organizations");
   if (!orgs.length) return [];
@@ -83,6 +84,7 @@ export async function listOrganizationsForAdmin(): Promise<AdminOrganization[]> 
     status: o.status,
     createdAt: o.created_at,
     approvedAt: o.approved_at,
+    disabledAt: o.disabled_at,
     ownerName: ownerByOrg.get(o.id) || "—",
   }));
 }

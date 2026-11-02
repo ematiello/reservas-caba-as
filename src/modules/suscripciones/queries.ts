@@ -35,7 +35,7 @@ export async function listSubscriptions(): Promise<Map<string, Subscription>> {
 }
 
 export type OrgBilling = {
-  org: { id: string; name: string; slug: string; status: Database["public"]["Enums"]["org_status"] };
+  org: { id: string; name: string; slug: string; status: Database["public"]["Enums"]["org_status"]; disabled_at: string | null };
   subscription: Subscription | null;
   plan: Plan | null;
   payments: SubscriptionPayment[];
@@ -44,7 +44,7 @@ export type OrgBilling = {
 export async function getOrgBilling(orgId: string): Promise<OrgBilling | null> {
   const supabase = await createClient();
   const [orgRes, subRes, paymentsRes] = await Promise.all([
-    supabase.from("organizations").select("id, name, slug, status").eq("id", orgId).maybeSingle(),
+    supabase.from("organizations").select("id, name, slug, status, disabled_at").eq("id", orgId).maybeSingle(),
     supabase.from("subscriptions").select("*").eq("org_id", orgId).maybeSingle(),
     supabase.from("subscription_payments").select("*").eq("org_id", orgId).order("paid_at", { ascending: false }),
   ]);
