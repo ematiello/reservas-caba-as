@@ -50,3 +50,4 @@ Decisions taken without asking (the user asked not to be interrupted; listed for
 - L4 The owner activity showed no property changes: properties, categories and units had no audit trigger. Added them (additive migration); media stays unaudited. The DB test was written after the push, so no RED was observed for it.
 - L5 Reactivation asks for the last active day; the action sends the next day because the period end is exclusive. Reading bookings or guests as admin writes the `view` row first and fails closed.
 - L6 Checks: typecheck, lint (0 errors), `vitest run src` 204/204, DB management 23/23, e2e management + subscriptions 16/16.
+- L7 Independent verifier: PASS, no blockers (S1-S12 met; DB 23/23, unit 204/204). Fixed advisory 5 (public listing cache tag on org state changes). Open advisories: owners still get the platform actor_id (name hidden); former members' past actions read as "Plataforma"; storage removal errors after deleting a property are not logged.
