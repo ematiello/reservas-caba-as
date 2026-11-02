@@ -310,9 +310,9 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
                 <form action={reactivateSubscriptionAction} className="flex flex-wrap items-end gap-3">
                   <input type="hidden" name="orgId" value={org.id} />
                   <div className="grid gap-1.5">
-                    <Label htmlFor="until">Último día activo</Label>
+                    <Label htmlFor="reactivateUntil">Último día activo</Label>
                     <Input
-                      id="until"
+                      id="reactivateUntil"
                       name="until"
                       type="date"
                       min={today}
