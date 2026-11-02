@@ -7,6 +7,9 @@ import { Sierras } from "@/components/brand/sierras";
 import { listPublicProperties } from "@/modules/publico/queries";
 import { BRAND, publicRobots, siteUrl } from "@/modules/publico/seo";
 
+import { PropertyCard } from "./property-card";
+import { SearchBar } from "./search-bar";
+
 export const metadata: Metadata = {
   title: `${BRAND}: alojamientos en las Sierras de Córdoba`,
   description: "Cabañas, departamentos, hoteles y hosterías en Traslasierra. Consultá fechas y escribile al alojamiento por WhatsApp.",
@@ -39,16 +42,13 @@ export default async function HomePage() {
           <p className="max-w-[46ch] text-lg leading-relaxed text-brand-slate">
             Cabañas, departamentos, hoteles y hosterías en el corazón de las Sierras de Córdoba.
           </p>
-          <div>
-            <Link
-              href="#alojamientos"
-              className="font-display inline-flex rounded-full bg-brand-ochre px-6 py-3 font-semibold text-brand-slate hover:bg-[#d9913a] focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:outline-none"
-            >
-              Ver alojamientos
-            </Link>
-          </div>
         </div>
       </section>
+
+      {/* The search bar rides on the ridges, like the brand's mockup. */}
+      <div className="relative z-10 mx-auto -mt-44 max-w-6xl px-4 pb-10 sm:-mt-40">
+        <SearchBar />
+      </div>
 
       <section aria-label="Por qué reservar acá" className="bg-brand-sand">
         <ul className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -74,29 +74,7 @@ export default async function HomePage() {
           <ul className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {properties.map((p) => (
               <li key={p.slug}>
-                <Link
-                  href={`/${p.slug}`}
-                  className="group block overflow-hidden rounded-2xl bg-white shadow-[0_1px_0_#e3d6c4] ring-1 ring-[var(--border)] focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:outline-none"
-                >
-                  <div className="aspect-[4/3] overflow-hidden bg-brand-sand">
-                    {p.photo ? (
-                      // Photos are resized in the browser before upload; no optimizer (images.unoptimized).
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={p.photo.url}
-                        alt={p.photo.alt}
-                        loading="lazy"
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03] motion-reduce:transition-none"
-                      />
-                    ) : (
-                      <Sierras />
-                    )}
-                  </div>
-                  <div className="p-4">
-                    <p className="font-display text-lg font-semibold text-brand-green-deep">{p.name}</p>
-                    {p.city ? <p className="text-sm text-muted-foreground">{p.city}</p> : null}
-                  </div>
-                </Link>
+                <PropertyCard href={`/${p.slug}`} name={p.name} place={p.city ?? ""} photo={p.photo} />
               </li>
             ))}
           </ul>

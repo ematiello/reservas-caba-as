@@ -42,7 +42,7 @@ Trabajar fase por fase y **detenerse para revisión al final de cada una**. Una 
 
 Incluido: Superadmin, planes y suscripciones con **cobro manual**, propietarios con colaboradores, establecimientos/categorías/unidades, motor de reservas y calendario, tarifas, pagos manuales de huéspedes (seña/saldo), página pública con SEO básico y WhatsApp (enlace).
 
-**Fuera del MVP (v1.1)** — no implementar sin aprobación: CRM/segmentación/promociones/remarketing, Google AdSense, gastos y reportes económicos, centro de notificaciones, API de WhatsApp, pasarelas de pago online, dominios propios por establecimiento, buscador general, traducciones.
+**Fuera del MVP (v1.1)** — no implementar sin aprobación: CRM/segmentación/promociones/remarketing, Google AdSense, gastos y reportes económicos, centro de notificaciones, API de WhatsApp, pasarelas de pago online, dominios propios por establecimiento, traducciones. (El buscador general entró al MVP: D26.)
 
 ## Stack y entorno
 

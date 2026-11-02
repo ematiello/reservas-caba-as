@@ -39,3 +39,4 @@ Formato: fecha · decisión · motivo. Las decisiones nuevas se agregan al final
 - Proveedor de SMTP para Supabase Auth. Recomendación: Resend.
 - Política de conservación de datos personales.
 - Pasar a Supabase Pro (≈ US$25/mes) antes de producción.
+| D26 | 2026-11-02 | **Buscador general entra al MVP** (antes v1.1, D2): portada con "¿Dónde querés ir?", fechas y huéspedes; resultados en `/buscar`. Busca por nombre, localidad o provincia (sin acentos ni mayúsculas, todas las palabras) y, con fechas, solo establecimientos con una unidad libre para esos huéspedes. Función `public_search` (`SECURITY DEFINER`, misma exposición que la página pública: sin reservas ni huéspedes). "buscar" pasa a slug reservado. La marca de la plataforma es "Reservas Traslasierra" (identidad del usuario) | Pedido del usuario: "Estaria bueno que tengamos un buscador de alojamientos y ademas un buscador de alojamientos libres en fechas determinadas" |
