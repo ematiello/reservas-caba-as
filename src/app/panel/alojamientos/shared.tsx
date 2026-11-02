@@ -6,7 +6,7 @@ import { publicMediaUrl, type Media } from "@/modules/alojamientos/queries";
 export function ReadOnlyNotice() {
   return (
     <Notice tone="warning">
-      La cuenta está suspendida, vencida, dada de baja o desactivada: el panel queda en solo lectura y los datos se conservan.
+      La cuenta está suspendida, vencida, dada de baja o desactivada: los alojamientos quedan en solo lectura y los datos se conservan.
     </Notice>
   );
 }
