@@ -18,7 +18,7 @@ import { MESSAGES, ReadOnlyNotice } from "./shared";
 export const metadata: Metadata = { title: "Alojamientos" };
 
 async function PropertiesContent({ searchParams }: Pick<PageProps<"/panel/alojamientos">, "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const [{ writable, canEdit }, properties, query] = await Promise.all([
     writeAccess(org),
     listProperties(org.orgId),
@@ -27,7 +27,7 @@ async function PropertiesContent({ searchParams }: Pick<PageProps<"/panel/alojam
   const message = messageFor(query, MESSAGES);
 
   return (
-    <AppShell title="Alojamientos" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title="Alojamientos">
       <div className="grid gap-6">
         <Link href="/panel" className="text-sm underline underline-offset-4">
           ← Volver al panel

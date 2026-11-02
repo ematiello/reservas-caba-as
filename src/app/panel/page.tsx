@@ -16,10 +16,10 @@ export const metadata: Metadata = { title: "Panel" };
 
 async function PanelContent() {
   // Authorize here, next to the data: layouts do not re-run on client navigation.
-  const { access, state } = await requirePanelAccess();
+  const { state } = await requirePanelAccess();
 
   return (
-    <AppShell title="Panel" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title="Panel">
       {state.kind === "no_org" ? (
         <Card>
           <CardHeader>

@@ -126,7 +126,7 @@ function RuleFields({ prefix, rule, targets }: { prefix: string; rule?: RateRule
 }
 
 async function RatesContent({ params, searchParams }: Pick<PageProps<"/panel/alojamientos/[id]/tarifas">, "params" | "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [page, query, { writable, canEdit }] = await Promise.all([getRates(org.orgId, id), searchParams, writeAccess(org)]);
@@ -143,7 +143,7 @@ async function RatesContent({ params, searchParams }: Pick<PageProps<"/panel/alo
   const weekend = property.weekendDays.map((d) => WEEKDAY[d]).join(" y ");
 
   return (
-    <AppShell title={`Tarifas · ${property.name}`} email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title={`Tarifas · ${property.name}`}>
       <div className="grid gap-6">
         <Link href={`/panel/alojamientos/${property.id}`} className="text-sm underline underline-offset-4">
           ← Volver al establecimiento

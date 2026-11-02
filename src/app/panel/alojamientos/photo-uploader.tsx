@@ -62,7 +62,7 @@ export function PhotoUploader({ orgId, propertyId, unitId }: Props) {
         multiple
         disabled={busy}
         onChange={onChange}
-        className="text-sm file:mr-3 file:rounded-md file:border file:bg-background file:px-3 file:py-1.5"
+        className="text-sm file:mr-3 file:rounded-full file:border file:border-input file:bg-white file:px-4 file:py-1.5 file:font-semibold file:text-brand-green-deep"
       />
       <p role="status" className="text-sm text-muted-foreground">
         {status ?? "Se achican automáticamente antes de subir."}

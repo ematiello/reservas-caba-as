@@ -13,13 +13,13 @@ import { requireActiveMembership } from "@/modules/organizaciones/session";
 export const metadata: Metadata = { title: "Huéspedes" };
 
 async function GuestsContent({ searchParams }: Pick<PageProps<"/panel/huespedes">, "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const query = await searchParams;
   const q = typeof query.q === "string" ? query.q : "";
   const guests = await listGuests(org.orgId, q);
 
   return (
-    <AppShell title="Huéspedes" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title="Huéspedes">
       <div className="grid gap-4">
         <Link href="/panel" className="text-sm underline underline-offset-4">
           ← Volver al panel

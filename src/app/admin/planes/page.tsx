@@ -75,12 +75,12 @@ function PlanForm({ plan }: { plan?: Plan }) {
 }
 
 async function PlansContent({ searchParams }: Pick<PageProps<"/admin/planes">, "searchParams">) {
-  const access = await requirePlatformAdmin();
+  await requirePlatformAdmin();
   const [plans, settings, query] = await Promise.all([listPlans(), getSettings(), searchParams]);
   const message = messageFor(query, MESSAGES);
 
   return (
-    <AppShell title="Planes y ajustes" email={access.user.email} showPanelLink showAdminLink>
+    <AppShell title="Planes y ajustes">
       <div className="grid gap-6">
         <Link href="/admin" className="text-sm underline underline-offset-4">
           ← Volver a administración

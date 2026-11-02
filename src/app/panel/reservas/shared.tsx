@@ -56,12 +56,12 @@ export const STATUS_LABEL: Record<BookingStatus, string> = {
 
 /** Cell colors of the occupancy grid; the legend reuses them. */
 export const CELL_CLASS = {
-  provisional: "bg-amber-200 text-amber-950 dark:bg-amber-900 dark:text-amber-50",
-  confirmed: "bg-sky-200 text-sky-950 dark:bg-sky-900 dark:text-sky-50",
-  checked_in: "bg-emerald-200 text-emerald-950 dark:bg-emerald-900 dark:text-emerald-50",
+  provisional: "bg-[#f6d8a8] text-[#5a3d12]",
+  confirmed: "bg-[#cfe0bd] text-brand-green-deep",
+  checked_in: "bg-brand-green text-white",
   checked_out: "bg-muted text-muted-foreground",
-  block: "bg-zinc-300 text-zinc-900 dark:bg-zinc-700 dark:text-zinc-50",
-  cleaning: "bg-zinc-100 dark:bg-zinc-800",
+  block: "bg-[#cfd5d9] text-brand-slate",
+  cleaning: "bg-brand-sand",
 } as const;
 
 export function cellClass(status: BookingStatus, kind: "booking" | "block"): string {

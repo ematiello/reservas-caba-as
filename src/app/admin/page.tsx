@@ -38,7 +38,7 @@ function PendingRow({ org, plans }: { org: AdminOrganization; plans: Plan[] }) {
           aria-label={`Plan para ${org.name}`}
           name="planId"
           defaultValue=""
-          className="h-8 rounded-md border bg-background px-2 text-sm"
+          className="h-8 rounded-lg border border-input bg-white px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
         >
           <option value="">Sin plan (asignar después)</option>
           {plans.map((p) => (
@@ -101,7 +101,7 @@ function Section({ title, description, count, children }: { title: string; descr
 }
 
 async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchParams">) {
-  const access = await requirePlatformAdmin();
+  await requirePlatformAdmin();
   const [orgs, plans, subs, query] = await Promise.all([
     listOrganizationsForAdmin(),
     listPlans(),
@@ -114,16 +114,8 @@ async function AdminContent({ searchParams }: Pick<PageProps<"/admin">, "searchP
   const rejected = orgs.filter((o) => o.status === "rejected");
 
   return (
-    <AppShell title="Administración" email={access.user.email} showPanelLink>
+    <AppShell title="Administración">
       <div className="grid gap-6">
-        <div className="flex flex-wrap gap-3">
-          <Link href="/admin/planes" className={buttonVariants({ variant: "outline" })}>
-            Planes y ajustes
-          </Link>
-          <Link href="/admin/feriados" className={buttonVariants({ variant: "outline" })}>
-            Feriados
-          </Link>
-        </div>
         {query.error === "revision" ? (
           <Notice tone="error">
             No se pudo registrar la decisión: la solicitud ya fue revisada, no existe o el plan está inactivo. La lista

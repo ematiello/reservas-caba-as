@@ -41,7 +41,7 @@ function Field({ id, label, children }: { id: string; label: string; children: R
 }
 
 async function PropertyContent({ params, searchParams }: Pick<PageProps<"/panel/alojamientos/[id]">, "params" | "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [detail, query, { writable, canEdit }] = await Promise.all([
@@ -56,7 +56,7 @@ async function PropertyContent({ params, searchParams }: Pick<PageProps<"/panel/
   const publishedUnits = units.filter((u) => u.is_published).length;
 
   return (
-    <AppShell title={p.name} email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title={p.name}>
       <div className="grid gap-6">
         <Link href="/panel/alojamientos" className="text-sm underline underline-offset-4">
           ← Todos los alojamientos

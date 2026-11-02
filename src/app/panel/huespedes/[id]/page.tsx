@@ -28,7 +28,7 @@ const MESSAGES: Record<string, string> = {
 };
 
 async function GuestContent({ params, searchParams }: PageProps<"/panel/huespedes/[id]">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const [{ id }, query, { writable }] = await Promise.all([params, searchParams, writeAccess(org)]);
   if (!z.uuid().safeParse(id).success) notFound();
   const detail = await getGuest(org.orgId, id);
@@ -37,7 +37,7 @@ async function GuestContent({ params, searchParams }: PageProps<"/panel/huespede
   const message = messageFor(query, MESSAGES);
 
   return (
-    <AppShell title={guest.full_name} email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title={guest.full_name}>
       <div className="grid gap-4">
         <Link href="/panel/huespedes" className="text-sm underline underline-offset-4">
           ← Todos los huéspedes

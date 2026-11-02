@@ -31,13 +31,13 @@ type Query = Awaited<PageProps<"/panel/reservas">["searchParams"]>;
 const one = (query: Query, key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
 
 async function CalendarContent({ searchParams }: Pick<PageProps<"/panel/reservas">, "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const [query, properties, { writable }] = await Promise.all([searchParams, listPropertyOptions(org.orgId), writeAccess(org)]);
   const message = messageFor(query, MESSAGES);
 
   if (!properties.length) {
     return (
-      <AppShell title="Reservas" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+      <AppShell title="Reservas">
         <Card>
           <CardHeader>
             <CardTitle>Todavía no hay alojamientos</CardTitle>
@@ -72,7 +72,7 @@ async function CalendarContent({ searchParams }: Pick<PageProps<"/panel/reservas
   const title = view === "semana" ? `Semana del ${formatDate(range.from)}` : `${formatDate(range.from).slice(3)}`;
 
   return (
-    <AppShell title="Reservas" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title="Reservas">
       <div className="grid gap-4">
         <Link href="/panel" className="text-sm underline underline-offset-4">
           ← Volver al panel

@@ -23,7 +23,7 @@ type Query = Awaited<PageProps<"/panel/reservas/nueva">["searchParams"]>;
 const one = (query: Query, key: string) => (typeof query[key] === "string" ? (query[key] as string) : undefined);
 
 async function NewBookingContent({ searchParams }: Pick<PageProps<"/panel/reservas/nueva">, "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const [query, properties, { writable }] = await Promise.all([searchParams, listPropertyOptions(org.orgId), writeAccess(org)]);
   const message = bookingMessage(query);
   const property = properties.find((p) => p.id === one(query, "property")) ?? properties[0];
@@ -31,7 +31,7 @@ async function NewBookingContent({ searchParams }: Pick<PageProps<"/panel/reserv
 
   if (!property) {
     return (
-      <AppShell title="Nueva reserva" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+      <AppShell title="Nueva reserva">
         <p className="text-sm">
           Primero cargá un establecimiento en{" "}
           <Link href="/panel/alojamientos" className="underline underline-offset-4">
@@ -50,7 +50,7 @@ async function NewBookingContent({ searchParams }: Pick<PageProps<"/panel/reserv
   const bookableCategories = categories.filter((c) => units.some((u) => u.categoryId === c.id));
 
   return (
-    <AppShell title="Nueva reserva" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title="Nueva reserva">
       <div className="grid gap-4">
         <Link href={back} className="text-sm underline underline-offset-4">
           ← Volver al calendario

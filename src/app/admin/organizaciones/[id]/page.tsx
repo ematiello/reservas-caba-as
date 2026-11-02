@@ -45,7 +45,7 @@ function pesos(cents: number) {
 }
 
 async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organizaciones/[id]">, "params" | "searchParams">) {
-  const access = await requirePlatformAdmin();
+  await requirePlatformAdmin();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [billing, plans, query] = await Promise.all([getOrgBilling(id), listPlans(), searchParams]);
@@ -59,7 +59,7 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
   const discountKind = sub?.discount_pct ? "pct" : sub?.discount_cents ? "cents" : "none";
 
   return (
-    <AppShell title={org.name} email={access.user.email} showPanelLink showAdminLink>
+    <AppShell title={org.name}>
       <div className="grid gap-6">
         <Link href="/admin" className="text-sm underline underline-offset-4">
           ← Volver a administración

@@ -38,7 +38,7 @@ export function InviteForm() {
             id="role"
             name="role"
             defaultValue="operator"
-            className="h-9 rounded-md border bg-background px-3 text-sm"
+            className="h-9 rounded-lg border border-input bg-white px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <option value="operator">Operador (calendario y reservas)</option>
             <option value="admin">Administrador</option>

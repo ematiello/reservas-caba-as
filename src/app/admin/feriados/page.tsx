@@ -24,12 +24,12 @@ const MESSAGES: Record<string, string> = {
 };
 
 async function HolidaysContent({ searchParams }: Pick<PageProps<"/admin/feriados">, "searchParams">) {
-  const access = await requirePlatformAdmin();
+  await requirePlatformAdmin();
   const [query, holidays] = await Promise.all([searchParams, listHolidays()]);
   const message = messageFor(query, MESSAGES);
 
   return (
-    <AppShell title="Feriados" email={access.user.email} showPanelLink>
+    <AppShell title="Feriados">
       <div className="grid gap-4">
         <Link href="/admin" className="text-sm underline underline-offset-4">
           ← Administración

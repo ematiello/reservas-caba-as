@@ -15,14 +15,14 @@ export const metadata: Metadata = { title: "Suscripción" };
 async function SubscriptionContent() {
   // Owner only (docs/01: only the owner sees the platform subscription and payments). RLS agrees.
   // A suspended account still reaches this page: suspension is a subscription state, not an org state.
-  const { access, org } = await requireOwnerAccess();
+  const { org } = await requireOwnerAccess();
   const billing = await getOrgBilling(org.orgId);
   const sub = billing?.subscription ?? null;
   const plan = billing?.plan ?? null;
   const today = todayAr();
 
   return (
-    <AppShell title="Suscripción" email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title="Suscripción">
       <div className="grid gap-6">
         <Link href="/panel" className="text-sm underline underline-offset-4">
           ← Volver al panel

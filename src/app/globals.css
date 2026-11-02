@@ -7,9 +7,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  /* Brand type: Lato for text, Montserrat for headings (fonts loaded in the root layout). */
+  --font-sans: var(--font-lato), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-heading: var(--font-montserrat), system-ui, sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,7 +47,7 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  /* Brand "Reservas Traslasierra" (public pages only, see .brand). */
+  /* Brand "Reservas Traslasierra" palette, used directly as brand-* utilities. */
   --color-brand-green: var(--brand-green);
   --color-brand-green-deep: var(--brand-green-deep);
   --color-brand-olive: var(--brand-olive);
@@ -58,40 +59,9 @@
   --font-body: var(--font-lato);
 }
 
+/* "Identidad serrana": Verde Serrano, Verde Oliva, Ocre Sierras, Arena, Pizarra. The shadcn tokens
+   below derive from it, so the panel, the admin and the sign-in pages share the public brand. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  /* "Identidad serrana": Verde Serrano, Verde Oliva, Ocre Sierras, Arena, Pizarra. */
   --brand-green: #1f5a46;
   --brand-green-deep: #163f32;
   --brand-olive: #7a9b58;
@@ -99,22 +69,44 @@
   --brand-sand: #f4e9db;
   --brand-paper: #fbf7f1;
   --brand-slate: #334048;
-}
 
-/* Public pages: the brand drives the shadcn tokens, the body type and the page ground. */
-.brand {
   --background: var(--brand-paper);
   --foreground: var(--brand-slate);
   --card: #ffffff;
   --card-foreground: var(--brand-slate);
+  --popover: #ffffff;
+  --popover-foreground: var(--brand-slate);
   --primary: var(--brand-green);
   --primary-foreground: #ffffff;
-  --muted: var(--brand-sand);
+  --secondary: var(--brand-sand);
+  --secondary-foreground: var(--brand-green-deep);
+  --muted: #f6efe4;
   --muted-foreground: #56636b;
+  --accent: var(--brand-sand);
+  --accent-foreground: var(--brand-green-deep);
+  --destructive: #a5321f;
   --border: #e3d6c4;
   --input: #d6c7b2;
   --ring: var(--brand-olive);
-  font-family: var(--font-lato), system-ui, sans-serif;
+  --chart-1: var(--brand-green);
+  --chart-2: var(--brand-olive);
+  --chart-3: var(--brand-ochre);
+  --chart-4: #8a6a45;
+  --chart-5: var(--brand-slate);
+  --radius: 0.75rem;
+  --sidebar: var(--brand-green-deep);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: var(--brand-ochre);
+  --sidebar-primary-foreground: var(--brand-slate);
+  --sidebar-accent: var(--brand-green);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #24543f;
+  --sidebar-ring: var(--brand-ochre);
+}
+
+/* Public pages: the public muted ground is the warmer sand. */
+.brand {
+  --muted: var(--brand-sand);
   background: var(--background);
   color: var(--foreground);
 }
@@ -159,8 +151,15 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Native checkboxes, radios and range inputs in the brand green. */
+    accent-color: var(--brand-green);
   }
   html {
     @apply font-sans;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
   }
 }
