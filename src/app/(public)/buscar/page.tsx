@@ -21,8 +21,9 @@ export const metadata: Metadata = {
 const TIME_ZONE = "America/Argentina/Buenos_Aires";
 
 export default function SearchPage(props: PageProps<"/buscar">) {
+  // A full-height fallback keeps the footer below the fold while the content streams in (no layout shift).
   return (
-    <Suspense fallback={<div className="min-h-[60vh]" aria-busy="true" />}>
+    <Suspense fallback={<div className="min-h-svh" aria-busy="true" />}>
       <SearchContent {...props} />
     </Suspense>
   );
