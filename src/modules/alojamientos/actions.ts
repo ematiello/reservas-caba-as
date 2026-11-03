@@ -17,6 +17,7 @@ import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
 // parent's organization. tests/db/accommodations.test.ts proves each one fails with 23503.
 import { isMediaPath } from "./image";
 import { categorySchema, newPropertySchema, propertySchema, unitSchema } from "./schemas";
+import { removeMediaFiles } from "./storage";
 
 // Owner/admin only. The organization always comes from the caller's membership, never from the
 // form; RLS checks owner/admin and a live subscription again. Results travel as ?ok= / ?error=.
@@ -121,12 +122,7 @@ export async function deletePropertyAction(formData: FormData): Promise<void> {
   // The storage policy needs the property to exist, so the files go after it with the server-only
   // client, limited to the paths this session read from its own organization.
   const paths = photos.data.map((m) => m.storage_path).filter((path) => path.startsWith(`${org.orgId}/${id}/`));
-  if (paths.length) {
-    const removed = await createAdminClient().storage.from("media").remove(paths);
-    // The property is already gone, so the owner still gets the success; the orphan files are logged
-    // with their paths so they can be removed by hand.
-    if (removed.error) console.error("Could not remove the photos of a deleted property", { paths, error: removed.error.message });
-  }
+  await removeMediaFiles(createAdminClient(), paths, { action: "deleteProperty", route: propertyPath(id), orgId: org.orgId });
   done(LIST, { ok: "establecimiento_borrado" });
 }
 
@@ -231,7 +227,11 @@ export async function deleteUnitAction(formData: FormData): Promise<void> {
   const { data, error } = await supabase.from("units").delete().eq("org_id", org.orgId).eq("id", unitId).select("id");
   if (error || !data?.length) done(unitPath(propertyId, unitId), { error: "escritura" });
   // Media rows go with the unit (cascade); remove their files too.
-  if (media?.length) await supabase.storage.from("media").remove(media.map((m) => m.storage_path));
+  await removeMediaFiles(supabase, media.map((m) => m.storage_path), {
+    action: "deleteUnit",
+    route: unitPath(propertyId, unitId),
+    orgId: org.orgId,
+  });
   done(propertyPath(propertyId), { ok: "unidad_borrada" });
 }
 
@@ -292,7 +292,11 @@ export async function registerMediaAction(input: z.input<typeof mediaInput>): Pr
     sort: count ?? 0,
   });
   if (error) {
-    await supabase.storage.from("media").remove([storagePath]);
+    await removeMediaFiles(supabase, [storagePath], {
+      action: "registerMedia",
+      route: propertyPath(propertyId),
+      orgId: org.orgId,
+    });
     return { error: "write" };
   }
   revalidatePath(unitId ? unitPath(propertyId, unitId) : propertyPath(propertyId));
@@ -313,6 +317,6 @@ export async function deleteMediaAction(formData: FormData): Promise<void> {
     .eq("id", mediaId)
     .select("storage_path");
   if (error || !data?.length) done(back, { error: "escritura" });
-  await supabase.storage.from("media").remove(data.map((m) => m.storage_path));
+  await removeMediaFiles(supabase, data.map((m) => m.storage_path), { action: "deleteMedia", route: back, orgId: org.orgId });
   done(back, { ok: "foto_borrada" });
 }
