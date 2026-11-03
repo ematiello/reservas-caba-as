@@ -90,6 +90,151 @@ export type Database = {
         }
         Relationships: []
       }
+      bookings: {
+        Row: {
+          check_in: string
+          check_out: string
+          cleaning_buffer_days: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          deposit_cents: number | null
+          expires_at: string | null
+          guest_id: string | null
+          guests_count: number | null
+          id: string
+          kind: Database["public"]["Enums"]["booking_kind"]
+          notes: string
+          occupied: unknown
+          org_id: string
+          price_breakdown: Json | null
+          property_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_cents: number | null
+          unit_id: string
+          updated_at: string
+        }
+        Insert: {
+          check_in: string
+          check_out: string
+          cleaning_buffer_days?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deposit_cents?: number | null
+          expires_at?: string | null
+          guest_id?: string | null
+          guests_count?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["booking_kind"]
+          notes?: string
+          occupied?: unknown
+          org_id: string
+          price_breakdown?: Json | null
+          property_id: string
+          status: Database["public"]["Enums"]["booking_status"]
+          total_cents?: number | null
+          unit_id: string
+          updated_at?: string
+        }
+        Update: {
+          check_in?: string
+          check_out?: string
+          cleaning_buffer_days?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          deposit_cents?: number | null
+          expires_at?: string | null
+          guest_id?: string | null
+          guests_count?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["booking_kind"]
+          notes?: string
+          occupied?: unknown
+          org_id?: string
+          price_breakdown?: Json | null
+          property_id?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          total_cents?: number | null
+          unit_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_org_id_guest_id_fkey"
+            columns: ["org_id", "guest_id"]
+            isOneToOne: false
+            referencedRelation: "guests"
+            referencedColumns: ["org_id", "id"]
+          },
+          {
+            foreignKeyName: "bookings_org_id_property_id_fkey"
+            columns: ["org_id", "property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["org_id", "id"]
+          },
+          {
+            foreignKeyName: "bookings_property_id_unit_id_fkey"
+            columns: ["property_id", "unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["property_id", "id"]
+          },
+        ]
+      }
+      guests: {
+        Row: {
+          consent_at: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          marketing_consent: boolean
+          notes: string
+          org_id: string
+          phone: string | null
+        }
+        Insert: {
+          consent_at?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          marketing_consent?: boolean
+          notes?: string
+          org_id: string
+          phone?: string | null
+        }
+        Update: {
+          consent_at?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          marketing_consent?: boolean
+          notes?: string
+          org_id?: string
+          phone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guests_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -677,6 +822,36 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      create_booking: {
+        Args: {
+          p_check_in: string
+          p_check_out: string
+          p_guest_email?: string
+          p_guest_name?: string
+          p_guest_phone?: string
+          p_guests_count?: number
+          p_kind?: Database["public"]["Enums"]["booking_kind"]
+          p_notes?: string
+          p_status?: Database["public"]["Enums"]["booking_status"]
+          p_unit: string
+        }
+        Returns: string
+      }
+      create_booking_for_category: {
+        Args: {
+          p_category: string
+          p_check_in: string
+          p_check_out: string
+          p_guest_email?: string
+          p_guest_name?: string
+          p_guest_phone?: string
+          p_guests_count: number
+          p_notes?: string
+          p_status?: Database["public"]["Enums"]["booking_status"]
+        }
+        Returns: string
+      }
+      expire_provisional_bookings: { Args: never; Returns: number }
       org_access_active: { Args: { p_org: string }; Returns: boolean }
       record_subscription_payment: {
         Args: {
@@ -701,6 +876,14 @@ export type Database = {
       suspend_subscription: { Args: { p_org: string }; Returns: undefined }
     }
     Enums: {
+      booking_kind: "booking" | "block"
+      booking_status:
+        | "provisional"
+        | "confirmed"
+        | "checked_in"
+        | "checked_out"
+        | "cancelled"
+        | "expired"
       member_role: "owner" | "admin" | "operator"
       org_status: "pending_approval" | "active" | "rejected"
       payment_method: "cash" | "transfer" | "mercadopago" | "other"
@@ -841,6 +1024,15 @@ export const Constants = {
   },
   public: {
     Enums: {
+      booking_kind: ["booking", "block"],
+      booking_status: [
+        "provisional",
+        "confirmed",
+        "checked_in",
+        "checked_out",
+        "cancelled",
+        "expired",
+      ],
       member_role: ["owner", "admin", "operator"],
       org_status: ["pending_approval", "active", "rejected"],
       payment_method: ["cash", "transfer", "mercadopago", "other"],
