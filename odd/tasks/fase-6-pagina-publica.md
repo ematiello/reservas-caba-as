@@ -1,0 +1,29 @@
+# Fase 6 — Página pública
+Objetivo: página pública por establecimiento en `/{slug}` (disponibilidad, cotización, WhatsApp, SEO básico) y portada de la plataforma, con la identidad "Identidad serrana: Reservas Traslasierra". Ramas apiladas sobre la Fase 5: `feat/fase-6-a-db` → `feat/fase-6-b-ui`. Entrega: `stacked-to-main`. Runner: Vitest (`src/**` puro, `tests/db/**` contra dev) y Playwright (móvil y escritorio).
+
+## Specs
+- S1. Entrega (`docs/04`): "`/{slug}`, `public_availability`, cotización, enlace de WhatsApp, metadatos, sitemap, robots, JSON-LD". Criterio: "Invariante 7; Lighthouse móvil ≥ 90 en rendimiento, SEO y accesibilidad; el panel no se indexa". E2E (`docs/04`): "página pública → consultar fechas → enlace de WhatsApp".
+- S2. Invariante 7 (`docs/03`): "`anon` no ve huéspedes, reservas ni pagos. `public_availability` no expone datos personales." `public_availability(slug, from, to)`: "`SECURITY DEFINER`, solo lectura. Devuelve rangos ocupados por unidad publicada, **sin datos de huéspedes**".
+- S3. Invariante 6 y `docs/01`: "Con la cuenta suspendida, el panel queda en solo lectura y la página pública muestra "no disponible"." `docs/02`: "Una organización suspendida responde "no disponible" con `noindex`."
+- S4. `docs/02`: "Las páginas públicas van en `/{slug}`, dentro del dominio de la plataforma. Se generan con SSR o ISR, con `generateMetadata` (title, description, canonical, Open Graph) y JSON-LD `LodgingBusiness`. Se usa `revalidateTag` cuando el propietario guarda cambios. La disponibilidad se consulta en el momento con una función RPC de solo lectura. `robots.ts` bloquea `/panel`, `/admin` y `/api`."
+- S5. D10: "La página pública no crea reservas: muestra disponibilidad y deriva a WhatsApp." CLAUDE.md: "Una consulta por WhatsApp no crea reservas." "Panel y datos de huéspedes no indexables." Precio calculado en el servidor (el cliente nunca envía importes).
+- S6. Identidad (usuario, L1): "creemos la pagina publica siguiendo la identidad digital que esta en el archivo Identidad serrana_ Reservas Traslasierra". Del archivo: marca "Reservas Traslasierra"; paleta Verde Serrano #1F5A46, Verde Oliva #7A9B58, Ocre Sierras #E5A048, Arena #F4E9DB, Pizarra #334048; tipografías Montserrat (títulos y destacados) y Lato (textos y contenidos); isotipo casa-sierra con sol; lema "Naturaleza, descanso y alojamientos con encanto"; portada "Tu estadía en Traslasierra" con barra de confianza ("Alojamientos verificados", "Reservá con confianza", "Atención personalizada", "Viví Traslasierra") y botón "Publicá tu alojamiento". Mobile-first.
+
+## Tasks
+- T1 (S2,S3) Migración: `public_availability`, `public_property_state`, lectura `anon` de tarifas/descuentos/feriados/categorías/comodidades de unidades publicadas; pruebas de BD. Ruta: inline. HECHA: migración `20261101214631_public_page.sql` aplicada al dev; `tests/db/public-page.test.ts` RED 5/8 → GREEN 8/8; suite de BD 103/103.
+- T2 (S1,S5) Módulo `src/modules/publico/`: cliente anónimo sin cookies, consultas, disponibilidad y enlace de WhatsApp puros con pruebas. Ruta: inline. Pendiente.
+- T3 (S6) Tema de marca (fuentes, tokens, logo) y portada `/`. Ruta: inline. Pendiente.
+- T4 (S1,S3,S4,S5,S6) `/{slug}`: fotos, unidades, consulta de fechas con cotización, WhatsApp, metadatos, JSON-LD, "no disponible". Ruta: inline. Pendiente.
+- T5 (S4) `robots.ts`, `sitemap.ts`, `revalidateTag` al guardar en el panel. Ruta: inline. Pendiente.
+- T6 (S1) e2e y Lighthouse. Ruta: inline. Pendiente.
+
+## Log
+- L1 (2026-11-01, usuario): "Adelante, creemos la pagina publica siguiendo la identidad digital que esta en el archivo Identidad serrana_ Reservas Traslasierra."
+- L2: Supuestos:
+  - La maqueta muestra un buscador general en la portada ("¿Dónde querés ir?"); el buscador general está fuera del MVP (v1.1). La portada usa la identidad sin buscador; la consulta de fechas vive en cada establecimiento.
+  - No hay fotos de marca en el repo: la portada usa una ilustración de sierras en SVG con la paleta; cada establecimiento usa sus fotos.
+  - Indexación: el layout raíz es `noindex` hasta el lanzamiento (dominio pendiente). Las páginas públicas se indexan solo con `SITE_INDEXING=on`; `robots.ts` siempre bloquea `/panel`, `/admin`, `/auth` y `/api`. Canonical y sitemap usan `NEXT_PUBLIC_SITE_URL`.
+  - Las tarifas se exponen a `anon` solo para establecimientos publicados de cuentas activas (`docs/03` ya lo preveía para `rate_rules`); son precios de lista, no datos personales.
+  - `public_property_state` devuelve "missing" para borradores y slugs inexistentes (no revela borradores) y "unavailable" para publicados de cuentas suspendidas.
+- L3: La prueba de la Fase 5 "anonymous visitors read no rates, discounts, holidays or payments" chocaba con la regla nueva (tarifas de publicados y feriados son públicos, como ya preveía `docs/03`). Se ajustó a "no payments, nor rates or discounts of unpublished properties" sobre la organización de la prueba, cuyo establecimiento no está publicado. Advisors: las dos funciones `SECURITY DEFINER` ejecutables por `anon` son intencionales (`docs/03`).
+  - Disponibilidad: libre si ningún rango ocupado (estados que bloquean, provisionales vigentes, con limpieza) se superpone con `[ingreso, salida + días de limpieza)`, igual que la exclusión de la BD.
