@@ -44,4 +44,6 @@ Objetivo: cerrar uno por uno los seguimientos de `docs/06-pendientes-tecnicos.md
 - L6 (2026-11-03): "a, documentalo" → P7 cerrado como riesgo aceptado, decisión D29 en `docs/05-decisiones.md`.
 - L7 (2026-11-03): "mantené el voseo" → D30. De P18 queda abierta la parte de React Hook Form.
 - L8 (2026-11-03): "seguimos sin React Hook Form, actualizá CLAUDE.md" → D31; React Hook Form fuera del stack de `CLAUDE.md`. P18 cerrado.
-- Siguiente: e2e completo y revisión profunda antes de integrar la rama.
+- L9 (2026-11-03): "sí, corré las dos". e2e 78/78 (5,4 min). Judgment Day sobre `d5376cb..9531c0b`: 0 severos confirmados, 1 advertencia y 3 sugerencias (APPROVED).
+- L10 (2026-11-03): "sí, arreglá las dos" → `942edf6` (`ownMessage`/`messageFor` ignoran claves heredadas como `__proto__`; afectaba a todas las páginas del panel) y migración `20261103123400` (zona horaria solo IANA usable por `Intl`; los 554 nombres aceptados se revisaron contra la lista de la base). Las otras dos observaciones quedan como P27 y P28 en `docs/06`.
+- Siguiente: integrar la rama (decisión del usuario).
