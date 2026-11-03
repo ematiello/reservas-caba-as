@@ -49,6 +49,33 @@ function ItemIcon({ icon, className }: { icon?: NavIcon; className?: string }) {
   return <Icon aria-hidden="true" className={className ?? "size-6"} strokeWidth={1.75} />;
 }
 
+const BAR =
+  "bg-brand-green-deep fixed inset-x-0 bottom-0 z-40 border-t border-white/10 pb-[env(safe-area-inset-bottom)] md:hidden";
+const SLOT =
+  "font-heading flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 text-[11px] leading-tight font-semibold focus-visible:bg-white/10 focus-visible:outline-none";
+const tone = (active: boolean) => (active ? "text-brand-ochre" : "text-brand-sand/80");
+
+/**
+ * Same bar without the active state, for the Suspense fallback: reading the path suspends on
+ * statically prerendered dynamic routes (`/[slug]`), and this keeps the bar in the prerendered HTML.
+ */
+export function BottomNavFallback({ items, label }: { items: NavItem[]; label: string }) {
+  return (
+    <nav aria-label={label} className={BAR}>
+      <ul className="flex">
+        {items.slice(0, 5).map((item) => (
+          <li key={item.href} className="min-w-0 flex-1">
+            <Link href={item.href} className={`${SLOT} ${tone(false)}`}>
+              <ItemIcon icon={item.icon} />
+              <span className="max-w-full truncate">{item.label}</span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
 type BottomNavProps = {
   items: NavItem[];
   /** Accessible name of the navigation landmark. */
@@ -73,22 +100,15 @@ export function BottomNav({ items, label, extra = null }: BottomNavProps) {
 
   if (items.length === 0) return null;
 
-  const slot =
-    "font-heading flex min-h-14 w-full flex-col items-center justify-center gap-0.5 px-1 text-[11px] leading-tight font-semibold focus-visible:bg-white/10 focus-visible:outline-none";
-  const tone = (active: boolean) => (active ? "text-brand-ochre" : "text-brand-sand/80");
-
   return (
     <>
-      <nav
-        aria-label={label}
-        className="bg-brand-green-deep fixed inset-x-0 bottom-0 z-40 border-t border-white/10 pb-[env(safe-area-inset-bottom)] md:hidden"
-      >
+      <nav aria-label={label} className={BAR}>
         <ul className="flex">
           {primary.map((item) => {
             const active = isActive(item, path);
             return (
               <li key={item.href} className="min-w-0 flex-1">
-                <Link href={item.href} aria-current={active ? "page" : undefined} className={`${slot} ${tone(active)}`}>
+                <Link href={item.href} aria-current={active ? "page" : undefined} className={`${SLOT} ${tone(active)}`}>
                   <ItemIcon icon={item.icon} />
                   <span className="max-w-full truncate">{item.label}</span>
                 </Link>
@@ -101,7 +121,7 @@ export function BottomNav({ items, label, extra = null }: BottomNavProps) {
                 type="button"
                 aria-haspopup="dialog"
                 onClick={() => sheet.current?.showModal()}
-                className={`${slot} ${tone(moreActive)}`}
+                className={`${SLOT} ${tone(moreActive)}`}
               >
                 <Ellipsis aria-hidden="true" className="size-6" strokeWidth={1.75} />
                 <span>Más</span>

@@ -1,13 +1,17 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { BrandLogo } from "@/components/brand/logo";
+import { BottomNav, BottomNavFallback } from "@/components/shell/bottom-nav";
+import { publicNavigation } from "@/components/shell/nav";
 
 // Public side of the platform (home, search and /{slug}). Fonts and colors come from the root
 // layout and the global theme ("Identidad serrana"); the paper ground is the public one.
+// The phone bottom bar has fixed items and never reads the session, so these pages stay static.
 export default function PublicLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="brand flex min-h-full flex-1 flex-col">
-      <header className="border-b border-[var(--border)] bg-white/90">
+      <header className="border-b border-[var(--border)] bg-white/90 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link href="/" aria-label="Reservas Traslasierra, inicio" className="rounded-md focus-visible:ring-2 focus-visible:ring-brand-olive focus-visible:outline-none">
             <BrandLogo />
@@ -21,7 +25,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
         </div>
       </header>
       <main className="flex-1">{children}</main>
-      <footer className="bg-brand-green-deep text-white">
+      <footer className="bg-brand-green-deep pb-[calc(4rem+env(safe-area-inset-bottom))] text-white md:pb-0">
         <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
           <div className="grid gap-3">
             <BrandLogo tone="light" />
@@ -39,6 +43,9 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
           </nav>
         </div>
       </footer>
+      <Suspense fallback={<BottomNavFallback items={publicNavigation} label="Navegación principal" />}>
+        <BottomNav items={publicNavigation} label="Navegación principal" />
+      </Suspense>
     </div>
   );
 }
