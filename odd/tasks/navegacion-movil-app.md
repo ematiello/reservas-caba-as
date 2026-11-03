@@ -18,7 +18,7 @@ Objetivo: en móvil, barra de navegación inferior para todos los usuarios y sit
 | T3 | Integración en `AppShell` (incluye zona segura superior de la cabecera) | S1, S2, S4 | inline | hecho (typecheck, lint; e2e en T7) | ver `git log` |
 | T4 | Integración en `(public)` y `auth` (con `Suspense` + `BottomNavFallback`) | S1, S2 | inline | hecho (build OK, `/` sigue estática; el primer build falló en `/[slug]` por `usePathname` sin Suspense) | ver `git log` |
 | T5 | `viewport`, `themeColor`, `appleWebApp`, zonas seguras (las de cabeceras y pie ya entraron en T3/T4) | S3 | inline | hecho (typecheck, lint, ui-guards; API verificada en `node_modules/next/dist/docs`) | ver `git log` |
-| T6 | Manifest e íconos | S3 | inline | pendiente | |
+| T6 | Manifest e íconos (`manifest.ts`, `apple-icon.tsx`, route handler estático `/pwa-icon/[size]` en vez de `icon.tsx`, para tener URLs fijas en el manifest) | S3 | inline | hecho (build OK, todo estático; PNG verificados y el 512 revisado a ojo) | ver `git log` |
 | T7 | e2e móvil + D33 + CLAUDE.md | S1-S4 | inline | pendiente | |
 
 ## Log
