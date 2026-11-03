@@ -8,7 +8,9 @@ Plataforma **SaaS multiempresa de reservas** para cabañas, casas, departamentos
 
 Fase 0 cerrada y verificada (esqueleto, `supabase link` al proyecto dev `uqgmtcmdaxruiwkawxxx`, despliegue de prueba en Hostinger).
 
-Fase actual: **Fase 1 — Organizaciones y acceso**, implementada en 3 ramas apiladas sin push (`feat/fase-1-a-db` → `-b-auth` → `-c-admin-team`; ver `odd/tasks/fase-1-organizaciones-acceso.md`). Pendiente su cierre: revisión de los tramos B y C, `/security-review`, prueba manual del registro por email y alta del primer Superadmin (INSERT manual en `platform_admins`).
+Fase 1 (organizaciones y acceso) cerrada: 3 ramas apiladas con push (`feat/fase-1-a-db` → `-b-auth` → `-c-admin-team`), revisadas; Superadmin del usuario creado en dev. Ver `odd/tasks/fase-1-organizaciones-acceso.md`.
+
+Fase actual: **Fase 2 — Suscripciones**, en 2 ramas apiladas sobre la Fase 1 (`feat/fase-2-a-db` → `feat/fase-2-b-ui`; ver `odd/tasks/fase-2-suscripciones.md`). Planes, días de prueba y de gracia se editan en `/admin/planes` (D22); `org_is_active()` evalúa la suscripción y la fecha (D23).
 
 ## Comandos
 
