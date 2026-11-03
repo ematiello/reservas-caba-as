@@ -251,6 +251,71 @@ export type Database = {
           },
         ]
       }
+      error_log: {
+        Row: {
+          count: number
+          detail: string | null
+          digest: string | null
+          fingerprint: string
+          first_at: string
+          id: number
+          last_at: string
+          message: string
+          org_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          route: string | null
+          severity: string
+          source: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          count?: number
+          detail?: string | null
+          digest?: string | null
+          fingerprint: string
+          first_at?: string
+          id?: never
+          last_at?: string
+          message: string
+          org_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          severity?: string
+          source: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          count?: number
+          detail?: string | null
+          digest?: string | null
+          fingerprint?: string
+          first_at?: string
+          id?: never
+          last_at?: string
+          message?: string
+          org_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          severity?: string
+          source?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guests: {
         Row: {
           consent_at: string | null
@@ -1089,6 +1154,20 @@ export type Database = {
         Args: { p_area: string; p_org: string }
         Returns: undefined
       }
+      log_error: {
+        Args: {
+          p_detail?: string
+          p_digest?: string
+          p_fingerprint: string
+          p_message: string
+          p_org?: string
+          p_route?: string
+          p_severity: string
+          p_source: string
+          p_user?: string
+        }
+        Returns: undefined
+      }
       org_access_active: { Args: { p_org: string }; Returns: boolean }
       public_availability: {
         Args: { p_from: string; p_slug: string; p_to: string }
@@ -1114,6 +1193,7 @@ export type Database = {
           slug: string
         }[]
       }
+      purge_error_log: { Args: never; Returns: number }
       reactivate_subscription: {
         Args: { p_org: string; p_until: string }
         Returns: undefined
@@ -1139,6 +1219,10 @@ export type Database = {
       }
       revoke_platform_admin: { Args: { p_user: string }; Returns: undefined }
       run_subscription_lifecycle: { Args: { p_today?: string }; Returns: Json }
+      set_error_status: {
+        Args: { p_id: number; p_status: string }
+        Returns: undefined
+      }
       set_organization_disabled: {
         Args: { p_disabled: boolean; p_org: string }
         Returns: undefined
