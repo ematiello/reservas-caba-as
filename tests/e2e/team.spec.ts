@@ -66,9 +66,11 @@ test.describe("invitation links", () => {
 
   test("an anonymous visitor is asked to sign in or create an account first", async ({ page }) => {
     await page.goto(invitationPath);
-    await expect(page.getByRole("link", { name: "Ingresar" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Crear una cuenta" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Aceptar invitación" })).toHaveCount(0);
+    // Inside <main>: on phones the bottom bar also has an "Ingresar" link.
+    const content = page.getByRole("main");
+    await expect(content.getByRole("link", { name: "Ingresar" })).toBeVisible();
+    await expect(content.getByRole("link", { name: "Crear una cuenta" })).toBeVisible();
+    await expect(content.getByRole("button", { name: "Aceptar invitación" })).toHaveCount(0);
   });
 
   test("the invitee accepts and gets the operator panel without team management", async ({ page }) => {
