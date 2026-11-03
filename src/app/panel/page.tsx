@@ -8,15 +8,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Notice } from "@/components/shell/notice";
 import type { OrgMembership } from "@/modules/organizaciones/panel-state";
 import { writeAccess } from "@/modules/organizaciones/access";
+import { registrationNotice } from "@/modules/organizaciones/auth-feedback";
 import { requirePanelAccess } from "@/modules/organizaciones/session";
 
 import { CreateOrganizationForm } from "./create-organization-form";
 
 export const metadata: Metadata = { title: "Panel" };
 
-async function PanelContent() {
+async function PanelContent({ searchParams }: Pick<PageProps<"/panel">, "searchParams">) {
   // Authorize here, next to the data: layouts do not re-run on client navigation.
   const { state } = await requirePanelAccess();
+  const { registro } = await searchParams;
+  const registrationProblem = registrationNotice(typeof registro === "string" ? registro : undefined);
 
   return (
     <AppShell title="Panel">
@@ -26,7 +29,8 @@ async function PanelContent() {
             <CardTitle>Registrá tu negocio</CardTitle>
             <CardDescription>Todavía no tenés un negocio asociado a tu cuenta.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="grid gap-4">
+            {registrationProblem ? <Notice tone="warning">{registrationProblem}</Notice> : null}
             <CreateOrganizationForm />
           </CardContent>
         </Card>
@@ -107,10 +111,10 @@ async function ActivePanel({ membership }: { membership: OrgMembership }) {
   );
 }
 
-export default function PanelPage() {
+export default function PanelPage({ searchParams }: PageProps<"/panel">) {
   return (
     <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">Cargando…</p>}>
-      <PanelContent />
+      <PanelContent searchParams={searchParams} />
     </Suspense>
   );
 }

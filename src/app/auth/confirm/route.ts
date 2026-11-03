@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { registrationRedirect } from "@/modules/organizaciones/auth-feedback";
 import { safeNext } from "@/modules/organizaciones/redirect";
 import { completePendingRegistration } from "@/modules/organizaciones/registration";
 
@@ -28,6 +29,6 @@ export async function GET(request: NextRequest) {
 
   if (!ok) redirect("/auth/login?error=confirmacion");
 
-  await completePendingRegistration(supabase);
-  redirect(safeNext(params.get("next")));
+  const registration = await completePendingRegistration(supabase);
+  redirect(registrationRedirect(registration, safeNext(params.get("next"))));
 }

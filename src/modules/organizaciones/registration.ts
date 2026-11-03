@@ -4,9 +4,10 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
 
+import type { RegistrationResult } from "./registration-result";
 import { orgFromMetadata } from "./schemas";
 
-export type RegistrationResult = "created" | "skipped" | "slug_taken" | "error";
+export type { RegistrationResult };
 
 // The business name and slug travel in the user's signup metadata, so the organization can be
 // created once there is a session: right after signUp when email confirmation is off, or on the
