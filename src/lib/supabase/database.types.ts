@@ -1048,6 +1048,21 @@ export type Database = {
         }[]
       }
       public_property_state: { Args: { p_slug: string }; Returns: string }
+      public_search: {
+        Args: {
+          p_check_in?: string
+          p_check_out?: string
+          p_guests?: number
+          p_query?: string
+        }
+        Returns: {
+          city: string
+          free_units: number
+          name: string
+          province: string
+          slug: string
+        }[]
+      }
       record_subscription_payment: {
         Args: {
           p_amount_cents: number

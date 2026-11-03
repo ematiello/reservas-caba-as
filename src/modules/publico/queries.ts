@@ -9,6 +9,7 @@ import type { ISODate } from "@/modules/reservas/calendar";
 import { quoteWith } from "@/modules/tarifas/server";
 import type { PricingResult } from "@/modules/tarifas/pricing";
 
+import type { Search } from "./search";
 import type { OccupiedRange, StayQuery } from "./stay";
 import { PUBLIC_PROPERTIES_TAG } from "./tags";
 
@@ -136,6 +137,33 @@ export async function getOccupied(slug: string, from: ISODate, to: ISODate): Pro
   const { data, error } = await createPublicClient().rpc("public_availability", { p_slug: slug, p_from: from, p_to: to });
   if (error) throw new Error("Could not read the availability");
   return data.map((r) => ({ unitId: r.unit_id, startsOn: r.starts_on, endsOn: r.ends_on }));
+}
+
+export type SearchResult = PublicListing & { province: string | null; freeUnits: number };
+
+/** Live search (D26): availability changes with every booking, so it is never cached. */
+export async function searchProperties(search: Search): Promise<SearchResult[]> {
+  const { data, error } = await createPublicClient().rpc("public_search", {
+    p_query: search.query || undefined,
+    p_check_in: search.checkIn ?? undefined,
+    p_check_out: search.checkOut ?? undefined,
+    p_guests: search.guests ?? undefined,
+  });
+  if (error) throw new Error("Could not search the properties");
+  // Photos and dates come from the cached listing; a property published a moment ago may lack them.
+  const listing = new Map((await listPublicProperties()).map((p) => [p.slug, p]));
+  return data.map((r) => {
+    const known = listing.get(r.slug);
+    return {
+      slug: r.slug,
+      name: r.name,
+      city: r.city,
+      province: r.province,
+      freeUnits: r.free_units,
+      updatedAt: known?.updatedAt ?? "",
+      photo: known?.photo ?? null,
+    };
+  });
 }
 
 /** The server's price for a stay (list prices only); null when the rates cannot be read. */

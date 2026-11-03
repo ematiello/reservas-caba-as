@@ -1,5 +1,5 @@
 # Fase 6 — Página pública
-Objetivo: página pública por establecimiento en `/{slug}` (disponibilidad, cotización, WhatsApp, SEO básico) y portada de la plataforma, con la identidad "Identidad serrana: Reservas Traslasierra". Ramas apiladas sobre la Fase 5: `feat/fase-6-a-db` → `feat/fase-6-b-ui`. Entrega: `stacked-to-main`. Runner: Vitest (`src/**` puro, `tests/db/**` contra dev) y Playwright (móvil y escritorio).
+Objetivo: página pública por establecimiento en `/{slug}` (disponibilidad, cotización, WhatsApp, SEO básico) y portada de la plataforma, con la identidad "Identidad serrana: Reservas Traslasierra". Ramas apiladas sobre la Fase 5: `feat/fase-6-a-db` → `feat/fase-6-b-ui` → `feat/fase-6-c-buscador`. Entrega: `stacked-to-main`. Runner: Vitest (`src/**` puro, `tests/db/**` contra dev) y Playwright (móvil y escritorio).
 
 ## Specs
 - S1. Entrega (`docs/04`): "`/{slug}`, `public_availability`, cotización, enlace de WhatsApp, metadatos, sitemap, robots, JSON-LD". Criterio: "Invariante 7; Lighthouse móvil ≥ 90 en rendimiento, SEO y accesibilidad; el panel no se indexa". E2E (`docs/04`): "página pública → consultar fechas → enlace de WhatsApp".
@@ -8,14 +8,16 @@ Objetivo: página pública por establecimiento en `/{slug}` (disponibilidad, cot
 - S4. `docs/02`: "Las páginas públicas van en `/{slug}`, dentro del dominio de la plataforma. Se generan con SSR o ISR, con `generateMetadata` (title, description, canonical, Open Graph) y JSON-LD `LodgingBusiness`. Se usa `revalidateTag` cuando el propietario guarda cambios. La disponibilidad se consulta en el momento con una función RPC de solo lectura. `robots.ts` bloquea `/panel`, `/admin` y `/api`."
 - S5. D10: "La página pública no crea reservas: muestra disponibilidad y deriva a WhatsApp." CLAUDE.md: "Una consulta por WhatsApp no crea reservas." "Panel y datos de huéspedes no indexables." Precio calculado en el servidor (el cliente nunca envía importes).
 - S6. Identidad (usuario, L1): "creemos la pagina publica siguiendo la identidad digital que esta en el archivo Identidad serrana_ Reservas Traslasierra". Del archivo: marca "Reservas Traslasierra"; paleta Verde Serrano #1F5A46, Verde Oliva #7A9B58, Ocre Sierras #E5A048, Arena #F4E9DB, Pizarra #334048; tipografías Montserrat (títulos y destacados) y Lato (textos y contenidos); isotipo casa-sierra con sol; lema "Naturaleza, descanso y alojamientos con encanto"; portada "Tu estadía en Traslasierra" con barra de confianza ("Alojamientos verificados", "Reservá con confianza", "Atención personalizada", "Viví Traslasierra") y botón "Publicá tu alojamiento". Mobile-first.
+- S7. Buscador (usuario, L6; D26): "Estaria bueno que tengamos un buscador de alojamientos y ademas un buscador de alojamientos libres en fechas determinadas". Por lugar o nombre (sin acentos), y con fechas y huéspedes solo establecimientos con alguna unidad libre (limpieza incluida); sin datos personales; resultados `noindex`.
 
 ## Tasks
 - T1 (S2,S3) Migración: `public_availability`, `public_property_state`, lectura `anon` de tarifas/descuentos/feriados/categorías/comodidades de unidades publicadas; pruebas de BD. Ruta: inline. HECHA: migración `20261101214631_public_page.sql` aplicada al dev; `tests/db/public-page.test.ts` RED 5/8 → GREEN 8/8; suite de BD 103/103.
-- T2 (S1,S5) Módulo `src/modules/publico/`: cliente anónimo sin cookies, consultas, disponibilidad y enlace de WhatsApp puros con pruebas. Ruta: inline. Pendiente.
-- T3 (S6) Tema de marca (fuentes, tokens, logo) y portada `/`. Ruta: inline. Pendiente.
-- T4 (S1,S3,S4,S5,S6) `/{slug}`: fotos, unidades, consulta de fechas con cotización, WhatsApp, metadatos, JSON-LD, "no disponible". Ruta: inline. Pendiente.
-- T5 (S4) `robots.ts`, `sitemap.ts`, `revalidateTag` al guardar en el panel. Ruta: inline. Pendiente.
-- T6 (S1) e2e y Lighthouse. Ruta: inline. Pendiente.
+- T2 (S1,S5) Módulo `src/modules/publico/`: cliente anónimo sin cookies, consultas, disponibilidad y enlace de WhatsApp puros con pruebas. Ruta: inline. HECHA en `67ced69`.
+- T3 (S6) Tema de marca (fuentes, tokens, logo) y portada `/`. Ruta: inline. HECHA en `67ced69`.
+- T4 (S1,S3,S4,S5,S6) `/{slug}`: fotos, unidades, consulta de fechas con cotización, WhatsApp, metadatos, JSON-LD, "no disponible". Ruta: inline. HECHA en `67ced69`.
+- T5 (S4) `robots.ts`, `sitemap.ts`, `revalidateTag` al guardar en el panel. Ruta: inline. HECHA en `67ced69`.
+- T6 (S1) e2e y Lighthouse. Ruta: inline. e2e HECHO; Lighthouse pendiente.
+- T7 (S7) `public_search` (migración, `unaccent`, slug "buscar" reservado), `/buscar`, barra de búsqueda en la portada; pruebas. Ruta: inline. HECHA en el tramo C.
 
 ## Log
 - L1 (2026-11-01, usuario): "Adelante, creemos la pagina publica siguiendo la identidad digital que esta en el archivo Identidad serrana_ Reservas Traslasierra."
@@ -29,3 +31,6 @@ Objetivo: página pública por establecimiento en `/{slug}` (disponibilidad, cot
 - L4: Tramo A `ea12033`. La revisión nativa quedó trabada: pide declarar archivos sin trackear (el PNG de identidad del usuario y el logo) con un JSON `gentle-ai.review-intended-untracked-selection/v1` cuyo formato no está documentado. Pendiente de decisión del usuario.
 - L5: Tramo B (en curso): T2–T5 implementadas (módulo `publico`, tema de marca en `(public)`, portada, `/{slug}`, not-found, robots, sitemap, `updateTag` en el panel). Pruebas: `stay.test.ts` RED → GREEN 11/11; e2e `public-page.spec.ts` 8/8 (móvil y escritorio); typecheck, lint y build limpios. Una página inexistente responde 200 con `noindex` por el streaming (Next no puede cambiar el estado). Pendiente: Lighthouse (no instalado; script de siembra en el scratchpad), revisión nativa y cierre.
   - Disponibilidad: libre si ningún rango ocupado (estados que bloquean, provisionales vigentes, con limpieza) se superpone con `[ingreso, salida + días de limpieza)`, igual que la exclusión de la BD.
+- L6 (2026-11-01, usuario): "Estaria bueno que tengamos un buscador de alojamientos y ademas un buscador de alojamientos libres en fechas determinadas" y luego "sigue". Se toma como aprobación para sacar el buscador de v1.1 (D26); reemplaza el supuesto de L2 sobre la portada sin buscador.
+- L7: Tramo C: migración `20261102014249_public_search.sql` aplicada al dev; `tests/db/public-search.test.ts` 7/7; `src/modules/publico` 21/21; e2e buscador + página pública 12/12; build (`/buscar` con `connection()` para la fecha de hoy), typecheck y lint limpios. En el celular la barra pone fechas lado a lado.
+- L8 (2026-11-01, usuario): "commitealo en docs/". La lámina de identidad quedó en `docs/identidad-serrana.png` (commit "docs: add the Reservas Traslasierra brand identity sheet"); destraba la revisión nativa.
