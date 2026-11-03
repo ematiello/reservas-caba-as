@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { loginSchema, registerSchema, slugify } from "./schemas";
+import {
+  invitationRoleSchema,
+  loginSchema,
+  orgFromMetadata,
+  registerCollaboratorSchema,
+  registerSchema,
+  slugify,
+} from "./schemas";
 
 const valid = {
   fullName: "Ana Pérez",
@@ -59,6 +66,53 @@ describe("registerSchema", () => {
   it("trims names and rejects empty ones", () => {
     expect(registerSchema.safeParse({ ...valid, fullName: "   " }).success).toBe(false);
     expect(registerSchema.safeParse({ ...valid, orgName: "" }).success).toBe(false);
+  });
+});
+
+describe("orgFromMetadata", () => {
+  it("validates the signup metadata with the same rules as the form", () => {
+    expect(orgFromMetadata({ org_name: "Cabañas del Río", org_slug: "" })).toEqual({
+      orgName: "Cabañas del Río",
+      slug: "cabanas-del-rio",
+    });
+    expect(orgFromMetadata({ org_name: "Mi Casa", org_slug: "Mi Casa" })?.slug).toBe("mi-casa");
+  });
+
+  it.each([
+    undefined,
+    null,
+    {},
+    { org_name: 42, org_slug: "x" },
+    { org_name: "", org_slug: "" },
+    { org_name: "Negocio", org_slug: "admin" },
+    { org_name: "x".repeat(121), org_slug: "" },
+  ])("returns null for unusable metadata %j", (meta) => {
+    expect(orgFromMetadata(meta)).toBeNull();
+  });
+});
+
+describe("registerCollaboratorSchema", () => {
+  it("needs only name, email and password (no business)", () => {
+    const result = registerCollaboratorSchema.safeParse({
+      fullName: "Luis Gómez",
+      email: "Luis@Example.com",
+      password: "una-clave-larga",
+    });
+    expect(result.success && result.data.email).toBe("luis@example.com");
+  });
+
+  it("applies the same password and name rules", () => {
+    const base = { fullName: "Luis Gómez", email: "luis@example.com", password: "una-clave-larga" };
+    expect(registerCollaboratorSchema.safeParse({ ...base, password: "corta" }).success).toBe(false);
+    expect(registerCollaboratorSchema.safeParse({ ...base, fullName: " " }).success).toBe(false);
+  });
+});
+
+describe("invitationRoleSchema", () => {
+  it("accepts admin and operator, never owner", () => {
+    expect(invitationRoleSchema.safeParse("admin").success).toBe(true);
+    expect(invitationRoleSchema.safeParse("operator").success).toBe(true);
+    expect(invitationRoleSchema.safeParse("owner").success).toBe(false);
   });
 });
 

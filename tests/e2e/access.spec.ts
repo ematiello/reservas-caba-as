@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { adminClient, createTestUser, hasDbEnv, uniqueSlug, type TestUser } from "../db/helpers";
+import { adminClient, assertDbEnv, createTestUser, skipDbTests, uniqueSlug, type TestUser } from "../db/helpers";
 
 // Exit criterion of Phase 1: /panel and /admin are protected on the server.
 
@@ -22,12 +22,15 @@ test.describe("anonymous visitors", () => {
 });
 
 test.describe("signed-in users", () => {
-  test.skip(!hasDbEnv, "needs the dev Supabase keys in .env.local");
+  assertDbEnv();
+  test.skip(skipDbTests, "SKIP_DB_TESTS=1");
   test.describe.configure({ mode: "serial" });
 
   let admin: SupabaseClient;
   let owner: TestUser;
   let superadmin: TestUser;
+  // Unique per run: the mobile and desktop projects share the same dev database.
+  const orgName = `Cabañas E2E ${uniqueSlug("n")}`;
 
   async function login(page: Page, user: TestUser, next: string) {
     await page.goto(`/auth/login?next=${encodeURIComponent(next)}`);
@@ -57,7 +60,7 @@ test.describe("signed-in users", () => {
     await login(page, owner, "/panel");
     await expect(page.getByText("Todavía no tenés un negocio")).toBeVisible();
 
-    await page.getByLabel("Nombre de tu negocio").fill("Cabañas E2E");
+    await page.getByLabel("Nombre de tu negocio").fill(orgName);
     await page.getByLabel(/Dirección pública/).fill(uniqueSlug("e2e"));
     await page.getByRole("button", { name: "Registrar mi negocio" }).click();
 
@@ -70,16 +73,40 @@ test.describe("signed-in users", () => {
     await expect(page.getByText("Solicitudes de organizaciones")).toHaveCount(0);
   });
 
-  test("a platform admin reaches /admin", async ({ page }) => {
+  test("a platform admin sees the pending request and approves it", async ({ page }) => {
     await login(page, superadmin, "/admin");
-    await expect(page.getByText("Solicitudes de organizaciones")).toBeVisible();
+    await expect(page.getByText(/Solicitudes de organizaciones/)).toBeVisible();
+    await expect(page.getByText(orgName)).toBeVisible();
+
+    await page.getByRole("button", { name: `Aprobar ${orgName}` }).click();
+    await expect(page.getByRole("button", { name: `Aprobar ${orgName}` })).toHaveCount(0);
+    await expect(page.getByText(orgName)).toBeVisible(); // now listed under "Activas"
+
+    const { data } = await admin.from("organizations").select("status, approved_by").eq("name", orgName).single();
+    expect(data).toEqual({ status: "active", approved_by: superadmin.id });
+  });
+
+  test("a platform admin rejects a request and the applicant sees it", async ({ page }) => {
+    const applicant = await createTestUser(admin, "e2erejected");
+    const rejectedName = `Rechazada E2E ${uniqueSlug("r")}`;
+    const created = await applicant.client.rpc("register_organization", { p_name: rejectedName, p_slug: uniqueSlug("rej") });
+    expect(created.error).toBeNull();
+    try {
+      await login(page, superadmin, "/admin");
+      await page.getByRole("button", { name: `Rechazar ${rejectedName}` }).click();
+      await expect(page.getByRole("button", { name: `Rechazar ${rejectedName}` })).toHaveCount(0);
+
+      await page.getByRole("button", { name: "Salir" }).click();
+      await login(page, applicant, "/panel");
+      await expect(page.getByText("Tu solicitud no fue aprobada")).toBeVisible();
+    } finally {
+      await admin.from("audit_log").delete().eq("org_id", created.data as string);
+      await admin.from("organizations").delete().eq("id", created.data as string);
+      await admin.auth.admin.deleteUser(applicant.id);
+    }
   });
 
   test("once approved, the owner sees the active panel", async ({ page }) => {
-    const { data } = await admin.from("memberships").select("org_id").eq("user_id", owner.id).single();
-    const review = await superadmin.client.rpc("review_organization", { p_org: data?.org_id, p_approve: true });
-    expect(review.error).toBeNull();
-
     await login(page, owner, "/panel");
     await expect(page.getByText("Tu cuenta está activa")).toBeVisible();
   });

@@ -6,7 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Plataforma **SaaS multiempresa de reservas** para cabañas, casas, departamentos, habitaciones y pequeños hoteles: Superadmin → Propietarios (organizaciones) → Establecimientos → Unidades. Fuente funcional: `Plan CHATGPT.docx` (relevamiento). Para leerlo: `unzip -p "Plan CHATGPT.docx" word/document.xml | sed -e 's/<\/w:p>/\n/g' -e 's/<[^>]*>//g'`. Análisis, decisiones y diseño aprobados en `docs/` (empezar por `docs/05-decisiones.md`).
 
-Fase actual: **Fase 0** — esqueleto local, `supabase link` al proyecto dev (`uqgmtcmdaxruiwkawxxx`) y despliegue de prueba en Hostinger listos y verificados; pendiente la revisión de cierre.
+Fase 0 cerrada y verificada (esqueleto, `supabase link` al proyecto dev `uqgmtcmdaxruiwkawxxx`, despliegue de prueba en Hostinger).
+
+Fase actual: **Fase 1 — Organizaciones y acceso**, implementada en 3 ramas apiladas sin push (`feat/fase-1-a-db` → `-b-auth` → `-c-admin-team`; ver `odd/tasks/fase-1-organizaciones-acceso.md`). Pendiente su cierre: revisión de los tramos B y C, `/security-review`, prueba manual del registro por email y alta del primer Superadmin (INSERT manual en `platform_admins`).
 
 ## Comandos
 
@@ -14,7 +16,7 @@ Fase actual: **Fase 0** — esqueleto local, `supabase link` al proyecto dev (`u
 npm run dev                 # desarrollo (Turbopack)
 npm run lint                # ESLint
 npm run typecheck           # next typegen && tsc (LayoutProps/PageProps son tipos generados)
-npm test                    # Vitest (src/**/*.test.ts, tests/db/**/*.test.ts)
+npm test                    # Vitest (src/**/*.test.ts, tests/db/**/*.test.ts). Las pruebas de BD y los e2e con datos necesitan las 3 claves del proyecto dev en .env.local (incluida SUPABASE_SECRET_KEY) y FALLAN si faltan; SKIP_DB_TESTS=1 las saltea a propósito
 npx vitest run src/lib/supabase/env.test.ts   # un archivo
 npx vitest run -t "fails fast"                 # un test por nombre
 npm run test:e2e            # Playwright: build + server standalone en :3100, móvil y escritorio

@@ -4,6 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/lib/supabase/database.types";
 
+import { orgFromMetadata } from "./schemas";
+
 export type RegistrationResult = "created" | "skipped" | "slug_taken" | "error";
 
 // The business name and slug travel in the user's signup metadata, so the organization can be
@@ -13,10 +15,8 @@ export async function completePendingRegistration(
   supabase: SupabaseClient<Database>,
 ): Promise<RegistrationResult> {
   const { data: userData } = await supabase.auth.getUser();
-  const meta = userData.user?.user_metadata;
-  const name = typeof meta?.org_name === "string" ? meta.org_name : "";
-  const slug = typeof meta?.org_slug === "string" ? meta.org_slug : "";
-  if (!userData.user || !name || !slug) return "skipped";
+  const org = userData.user ? orgFromMetadata(userData.user.user_metadata) : null;
+  if (!org) return "skipped";
 
   const { count, error: countError } = await supabase
     .from("memberships")
@@ -24,7 +24,7 @@ export async function completePendingRegistration(
   if (countError) return "error";
   if ((count ?? 0) > 0) return "skipped";
 
-  const { error } = await supabase.rpc("register_organization", { p_name: name, p_slug: slug });
+  const { error } = await supabase.rpc("register_organization", { p_name: org.orgName, p_slug: org.slug });
   if (!error) return "created";
   return error.code === "23505" ? "slug_taken" : "error";
 }

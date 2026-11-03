@@ -35,6 +35,10 @@ export const getAccess = cache(async (): Promise<Access | null> => {
       .order("created_at"),
   ]);
 
+  // A failed query must not look like "no data": an owner would be sent to the create-business
+  // screen and a platform admin to a 404. Fail loudly instead.
+  if (admin.error || memberships.error) throw new Error("Could not load the session access data");
+
   const rows: OrgMembership[] = (memberships.data ?? []).flatMap((row) =>
     row.organizations
       ? [
@@ -70,6 +74,14 @@ export async function requireUser(next: string): Promise<Access> {
 export async function requirePanelAccess(): Promise<{ access: Access; state: PanelState }> {
   const access = await requireUser("/panel");
   return { access, state: resolvePanelState(access.memberships) };
+}
+
+// Team management: the owner of an active organization. Anyone else goes back to /panel.
+// The organization always comes from the caller's own memberships, never from form input.
+export async function requireOwnerAccess(): Promise<{ access: Access; org: OrgMembership }> {
+  const { access, state } = await requirePanelAccess();
+  if (state.kind !== "active" || state.membership.role !== "owner") redirect("/panel");
+  return { access, org: state.membership };
 }
 
 // Superadmin area. A signed-in user who is not a platform admin gets a 404 so the route is not revealed.

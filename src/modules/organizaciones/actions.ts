@@ -1,14 +1,16 @@
 "use server";
 
-import { headers } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { siteOrigin } from "./origin";
 import { safeNext } from "./redirect";
 import { completePendingRegistration } from "./registration";
-import { createOrganizationSchema, loginSchema, registerSchema } from "./schemas";
-import { requireUser } from "./session";
+import { createOrganizationSchema, loginSchema, registerCollaboratorSchema, registerSchema } from "./schemas";
+import { requirePlatformAdmin, requireUser } from "./session";
 
 export type FormState = {
   error?: string;
@@ -21,14 +23,6 @@ export type FormState = {
 function text(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
-}
-
-async function siteOrigin(): Promise<string> {
-  const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  const h = await headers();
-  const proto = h.get("x-forwarded-proto") ?? "https";
-  return `${proto}://${h.get("host")}`;
 }
 
 export async function registerAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -70,6 +64,38 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
   return {
     notice: "Te enviamos un email para confirmar tu cuenta. Al confirmarlo, un administrador revisará tu solicitud.",
   };
+}
+
+// Account for someone invited to an existing business: no organization is created. `next` brings
+// them back to the invitation link after confirming their email.
+export async function registerCollaboratorAction(_prev: FormState, formData: FormData): Promise<FormState> {
+  const raw = {
+    fullName: text(formData, "fullName"),
+    email: text(formData, "email"),
+    password: text(formData, "password"),
+  };
+  const values = { fullName: raw.fullName, email: raw.email };
+  const next = safeNext(text(formData, "next"));
+
+  const parsed = registerCollaboratorSchema.safeParse(raw);
+  if (!parsed.success) return { fieldErrors: parsed.error.flatten().fieldErrors, values };
+  const { fullName, email, password } = parsed.data;
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: fullName },
+      emailRedirectTo: `${await siteOrigin()}/auth/confirm?next=${encodeURIComponent(next)}`,
+    },
+  });
+  if (error) {
+    return { error: "No pudimos crear la cuenta. Revisá los datos e intentá de nuevo.", values };
+  }
+  if (data.session) redirect(next);
+
+  return { notice: "Te enviamos un email para confirmar tu cuenta. Al confirmarlo, volvé a abrir el enlace de invitación." };
 }
 
 export async function loginAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -117,6 +143,29 @@ export async function createOrganizationAction(_prev: FormState, formData: FormD
       : { error: "No pudimos registrar el negocio. Intentá de nuevo.", values: raw };
   }
   redirect("/panel");
+}
+
+const reviewSchema = z.object({
+  orgId: z.uuid(),
+  decision: z.enum(["approve", "reject"]),
+});
+
+// Superadmin only: the check here and `review_organization()` (SECURITY DEFINER, checks
+// `is_platform_admin()`) are independent, so a forged request fails in both places.
+export async function reviewOrganizationAction(formData: FormData): Promise<void> {
+  await requirePlatformAdmin();
+  const parsed = reviewSchema.safeParse({ orgId: text(formData, "orgId"), decision: text(formData, "decision") });
+  if (!parsed.success) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("review_organization", {
+    p_org: parsed.data.orgId,
+    p_approve: parsed.data.decision === "approve",
+  });
+  // e.g. already reviewed by someone else: tell the admin instead of failing silently.
+  if (error) redirect("/admin?error=revision");
+  revalidatePath("/admin");
+  redirect("/admin");
 }
 
 export async function logoutAction(): Promise<void> {

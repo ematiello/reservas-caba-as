@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { AppShell } from "@/components/shell/app-shell";
+import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePanelAccess } from "@/modules/organizaciones/session";
 
@@ -56,6 +58,13 @@ async function PanelContent() {
             <CardTitle>{state.membership.orgName}</CardTitle>
             <CardDescription>Tu cuenta está activa. Próximamente: establecimientos y reservas.</CardDescription>
           </CardHeader>
+          {state.membership.role === "owner" ? (
+            <CardContent>
+              <Link href="/panel/equipo" className={buttonVariants({ variant: "outline" })}>
+                Gestionar equipo
+              </Link>
+            </CardContent>
+          ) : null}
         </Card>
       ) : null}
     </AppShell>

@@ -9,6 +9,18 @@ describe("safeNext", () => {
     expect(safeNext("/admin/organizaciones")).toBe("/admin/organizaciones");
   });
 
+  it("allows an invitation link path", () => {
+    const token = "Abc123_-Abc123_-Abc123_-";
+    expect(safeNext(`/auth/invitacion/${token}`)).toBe(`/auth/invitacion/${token}`);
+  });
+
+  it.each(["/auth/invitacion/", "/auth/invitacion/corto", "/auth/invitacion/abc/../../x", "/auth/login"])(
+    "rejects the non-invitation auth path %s",
+    (target) => {
+      expect(safeNext(target)).toBe("/panel");
+    },
+  );
+
   it("falls back to /panel when missing or empty", () => {
     expect(safeNext(undefined)).toBe("/panel");
     expect(safeNext(null)).toBe("/panel");

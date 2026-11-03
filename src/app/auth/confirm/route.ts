@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 
 import { createClient } from "@/lib/supabase/server";
+import { safeNext } from "@/modules/organizaciones/redirect";
 import { completePendingRegistration } from "@/modules/organizaciones/registration";
 
 // Only the email-confirmation flows are accepted here (not recovery or invites).
@@ -28,5 +29,5 @@ export async function GET(request: NextRequest) {
   if (!ok) redirect("/auth/login?error=confirmacion");
 
   await completePendingRegistration(supabase);
-  redirect("/panel");
+  redirect(safeNext(params.get("next")));
 }
