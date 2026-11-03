@@ -90,6 +90,66 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_payments: {
+        Row: {
+          amount_cents: number
+          booking_id: string
+          created_at: string
+          currency: string
+          id: string
+          kind: Database["public"]["Enums"]["guest_payment_kind"]
+          method: Database["public"]["Enums"]["guest_payment_method"]
+          org_id: string
+          paid_at: string
+          recorded_by: string | null
+          reference: string
+          voided_at: string | null
+        }
+        Insert: {
+          amount_cents: number
+          booking_id: string
+          created_at?: string
+          currency?: string
+          id?: string
+          kind: Database["public"]["Enums"]["guest_payment_kind"]
+          method: Database["public"]["Enums"]["guest_payment_method"]
+          org_id: string
+          paid_at?: string
+          recorded_by?: string | null
+          reference?: string
+          voided_at?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          booking_id?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["guest_payment_kind"]
+          method?: Database["public"]["Enums"]["guest_payment_method"]
+          org_id?: string
+          paid_at?: string
+          recorded_by?: string | null
+          reference?: string
+          voided_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_payments_org_id_booking_id_fkey"
+            columns: ["org_id", "booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["org_id", "id"]
+          },
+          {
+            foreignKeyName: "booking_payments_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bookings: {
         Row: {
           check_in: string
@@ -235,6 +295,21 @@ export type Database = {
           },
         ]
       }
+      holidays: {
+        Row: {
+          date: string
+          name: string
+        }
+        Insert: {
+          date: string
+          name: string
+        }
+        Update: {
+          date?: string
+          name?: string
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted_at: string | null
@@ -279,6 +354,41 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      length_discounts: {
+        Row: {
+          created_at: string
+          id: string
+          min_nights: number
+          org_id: string
+          pct: number
+          property_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          min_nights: number
+          org_id: string
+          pct: number
+          property_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          min_nights?: number
+          org_id?: string
+          pct?: number
+          property_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "length_discounts_org_id_property_id_fkey"
+            columns: ["org_id", "property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["org_id", "id"]
           },
         ]
       }
@@ -556,6 +666,82 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      rate_rules: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          date_from: string | null
+          date_to: string | null
+          extra_guest_cents: number | null
+          guests_included: number | null
+          id: string
+          kind: Database["public"]["Enums"]["rate_kind"]
+          min_nights: number | null
+          name: string
+          org_id: string
+          price_cents: number
+          priority: number | null
+          property_id: string
+          unit_id: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          extra_guest_cents?: number | null
+          guests_included?: number | null
+          id?: string
+          kind: Database["public"]["Enums"]["rate_kind"]
+          min_nights?: number | null
+          name: string
+          org_id: string
+          price_cents: number
+          priority?: number | null
+          property_id: string
+          unit_id?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          date_from?: string | null
+          date_to?: string | null
+          extra_guest_cents?: number | null
+          guests_included?: number | null
+          id?: string
+          kind?: Database["public"]["Enums"]["rate_kind"]
+          min_nights?: number | null
+          name?: string
+          org_id?: string
+          price_cents?: number
+          priority?: number | null
+          property_id?: string
+          unit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rate_rules_org_id_property_id_fkey"
+            columns: ["org_id", "property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["org_id", "id"]
+          },
+          {
+            foreignKeyName: "rate_rules_property_id_category_id_fkey"
+            columns: ["property_id", "category_id"]
+            isOneToOne: false
+            referencedRelation: "unit_categories"
+            referencedColumns: ["property_id", "id"]
+          },
+          {
+            foreignKeyName: "rate_rules_property_id_unit_id_fkey"
+            columns: ["property_id", "unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["property_id", "id"]
           },
         ]
       }
@@ -884,9 +1070,12 @@ export type Database = {
         | "checked_out"
         | "cancelled"
         | "expired"
+      guest_payment_kind: "deposit" | "payment" | "refund"
+      guest_payment_method: "cash" | "transfer" | "mercadopago" | "other"
       member_role: "owner" | "admin" | "operator"
       org_status: "pending_approval" | "active" | "rejected"
       payment_method: "cash" | "transfer" | "mercadopago" | "other"
+      rate_kind: "base" | "season" | "weekend" | "holiday" | "special"
       subscription_status:
         | "trial"
         | "active"
@@ -1033,9 +1222,12 @@ export const Constants = {
         "cancelled",
         "expired",
       ],
+      guest_payment_kind: ["deposit", "payment", "refund"],
+      guest_payment_method: ["cash", "transfer", "mercadopago", "other"],
       member_role: ["owner", "admin", "operator"],
       org_status: ["pending_approval", "active", "rejected"],
       payment_method: ["cash", "transfer", "mercadopago", "other"],
+      rate_kind: ["base", "season", "weekend", "holiday", "special"],
       subscription_status: [
         "trial",
         "active",

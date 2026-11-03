@@ -27,4 +27,5 @@ Seguimientos que dejaron las revisiones de las fases 1 a 3. Ninguno bloquea; se 
 | P22 | 4 | `src/modules/reservas/calendar.ts` (`BookingStatus`) | Unión escrita a mano; derivarla de `Database["public"]["Enums"]` deja una sola fuente (hoy `tsc` igual detecta la diferencia en `getCalendar`) (`gga`). | Abierto |
 | P23 | 4 | `/panel/reservas/[id]` (`actionsFor`) | Repite las transiciones de `bookings_guard`; si divergen, el usuario ve un botón que termina en error "transicion" (la base decide) (`gga`). | Abierto |
 | P24 | 4 | `tests/db/bookings.test.ts:24` | `orgB` asignada y sin uso (aviso de ESLint). | Abierto |
+| P25 | 1-5 | Índices | Advisor de rendimiento (INFO): varias FKs compuestas y `created_by`/`recorded_by` sin índice que las cubra (`bookings`, `booking_payments`, `rate_rules`, `length_discounts`, `invitations`, etc.). Evaluar con volumen real. | Abierto |
 | P19 | 1-3 | Engram | El espejo en Engram de las bitácoras `odd/tasks` está pendiente: no hubo herramientas de Engram en estas sesiones. | Abierto |
