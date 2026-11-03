@@ -48,7 +48,7 @@ docs/
 | Entorno | App | Base de datos |
 |---|---|---|
 | Local | `next dev` | Proyecto Supabase **dev** (nube, gratis) |
-| Prueba | Hostinger: `violet-quail-122403.hostingersite.com` | Proyecto Supabase dev |
+| Prueba / piloto (D32) | Hostinger: `violet-quail-122403.hostingersite.com` | Proyecto Supabase dev |
 | Producción | Hostinger + dominio definitivo | Proyecto Supabase **prod** (plan Pro: backups y sin pausa) |
 
 No hay Docker, así que no se usa `supabase start`. El flujo es:
