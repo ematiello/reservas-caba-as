@@ -3,20 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { isActive, type NavItem } from "./nav";
+import { isActive, resolveArea, type NavItem } from "./nav";
 
 // Section tabs of the private areas. The admin area and the owner panel each show their own tabs,
 // plus a link to switch to the other area when the user has both.
 export function ShellNav({ panel, admin }: { panel: NavItem[] | null; admin: NavItem[] | null }) {
   const path = usePathname();
-  const inAdmin = path === "/admin" || path.startsWith("/admin/");
-  const items = (inAdmin ? admin : panel) ?? [];
-  const other = inAdmin
-    ? panel && { href: "/panel", label: "Ir al panel" }
-    : admin && { href: "/admin", label: "Administración" };
+  const { items, label, other } = resolveArea(path, panel, admin);
 
   return (
-    <nav aria-label={inAdmin ? "Administración" : "Panel"} className="mx-auto w-full max-w-6xl px-2">
+    <nav aria-label={label} className="mx-auto w-full max-w-6xl px-2">
       <ul className="flex items-end gap-1 overflow-x-auto text-sm [scrollbar-width:none]">
         {items.map((item) => {
           const active = isActive(item, path);
