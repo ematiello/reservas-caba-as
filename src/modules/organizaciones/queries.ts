@@ -88,3 +88,11 @@ export async function listOrganizationsForAdmin(): Promise<AdminOrganization[]> 
     ownerName: ownerByOrg.get(o.id) || "—",
   }));
 }
+
+/** Name of one organization (RLS: its members or the platform admin), or null if it does not exist. */
+export async function getOrganizationName(orgId: string): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("organizations").select("name").eq("id", orgId).maybeSingle();
+  if (error) throw new Error("Could not load the organization");
+  return data?.name ?? null;
+}

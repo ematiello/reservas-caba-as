@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { done as finish } from "@/lib/action-result";
+import type { ActionResult } from "@/lib/action-result-url";
 import { createClient } from "@/lib/supabase/server";
 import { requireManagerAccess } from "@/modules/organizaciones/session";
 import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
@@ -25,11 +27,9 @@ function fields(formData: FormData): Record<string, string> {
   return out;
 }
 
-function done(path: string, result: { ok: string } | { error: string }): never {
-  revalidatePath(path);
-  // The public pages show this data from a cache: the owner sees their change there right away.
-  updateTag(PUBLIC_PROPERTIES_TAG);
-  redirect(`${path}?${"ok" in result ? `ok=${result.ok}` : `error=${result.error}`}`);
+// The public pages show this data from a cache: the owner sees their change there right away.
+function done(path: string, result: ActionResult): never {
+  return finish(path, result, { tags: [PUBLIC_PROPERTIES_TAG] });
 }
 
 const LIST = "/panel/alojamientos";
@@ -121,7 +121,12 @@ export async function deletePropertyAction(formData: FormData): Promise<void> {
   // The storage policy needs the property to exist, so the files go after it with the server-only
   // client, limited to the paths this session read from its own organization.
   const paths = photos.data.map((m) => m.storage_path).filter((path) => path.startsWith(`${org.orgId}/${id}/`));
-  if (paths.length) await createAdminClient().storage.from("media").remove(paths);
+  if (paths.length) {
+    const removed = await createAdminClient().storage.from("media").remove(paths);
+    // The property is already gone, so the owner still gets the success; the orphan files are logged
+    // with their paths so they can be removed by hand.
+    if (removed.error) console.error("Could not remove the photos of a deleted property", { paths, error: removed.error.message });
+  }
   done(LIST, { ok: "establecimiento_borrado" });
 }
 

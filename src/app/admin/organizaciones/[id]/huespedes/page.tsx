@@ -9,8 +9,8 @@ import { Notice } from "@/components/shell/notice";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { logAdminAccess } from "@/modules/auditoria/queries";
 import { listGuests } from "@/modules/huespedes/queries";
+import { getOrganizationName } from "@/modules/organizaciones/queries";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
-import { getOrgBilling } from "@/modules/suscripciones/queries";
 
 export const metadata: Metadata = { title: "Huéspedes de la organización" };
 
@@ -18,14 +18,14 @@ async function GuestsContent({ params }: Pick<PageProps<"/admin/organizaciones/[
   await requirePlatformAdmin();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const billing = await getOrgBilling(id);
-  if (!billing) notFound();
+  const orgName = await getOrganizationName(id);
+  if (orgName === null) notFound();
   // Every opening is audited before any data is read; if the audit row fails, nothing is shown.
   await logAdminAccess(id, "guests");
   const guests = await listGuests(id, undefined);
 
   return (
-    <AppShell title={`Huéspedes · ${billing.org.name}`}>
+    <AppShell title={`Huéspedes · ${orgName}`}>
       <div className="grid gap-6">
         <Link href={`/admin/organizaciones/${id}`} className="text-sm underline underline-offset-4">
           ← Volver a la organización

@@ -1,9 +1,8 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { done } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { requireManagerAccess, requirePlatformAdmin } from "@/modules/organizaciones/session";
 
@@ -16,10 +15,6 @@ import { holidaySchema } from "./schemas";
 const ADMIN_PATH = "/admin/feriados";
 const PANEL_PATH = "/panel/feriados";
 
-function done(path: string, result: { ok: string } | { error: string }): never {
-  revalidatePath(path);
-  redirect(`${path}?${"ok" in result ? `ok=${result.ok}` : `error=${result.error}`}`);
-}
 
 async function insertHoliday(path: string, orgId: string | null, formData: FormData): Promise<never> {
   const parsed = holidaySchema.safeParse({ date: formData.get("date") ?? "", name: formData.get("name") ?? "" });

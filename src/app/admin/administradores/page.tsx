@@ -20,6 +20,7 @@ const MESSAGES: Record<string, string> = {
   sin_cuenta: "No hay ninguna cuenta con ese email. La persona primero tiene que registrarse.",
   alta_error: "No se pudo agregar al administrador.",
   quitar_propio: "No podés quitarte a vos mismo. Pedíselo a otro administrador.",
+  quitar_ultimo: "No se puede quitar al último administrador de la plataforma.",
   quitar_error: "No se pudo quitar al administrador.",
 };
 

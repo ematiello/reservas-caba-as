@@ -4,6 +4,7 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { done } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
 
@@ -15,10 +16,6 @@ import { requirePlatformAdmin } from "./session";
 // Platform admin only. Each action checks requirePlatformAdmin() and the RPC checks
 // is_platform_admin() again; every change lands in the audit log through the table triggers.
 
-function done(path: string, result: { ok: string } | { error: string }): never {
-  revalidatePath(path);
-  redirect(`${path}?${"ok" in result ? `ok=${result.ok}` : `error=${result.error}`}`);
-}
 
 const ADMINS = "/admin/administradores";
 
@@ -103,6 +100,6 @@ export async function revokePlatformAdminAction(formData: FormData): Promise<voi
   if (userId.data === access.user.id) done(ADMINS, { error: "quitar_propio" });
   const supabase = await createClient();
   const { error } = await supabase.rpc("revoke_platform_admin", { p_user: userId.data });
-  if (error) done(ADMINS, { error: error.code === "P0001" ? "quitar_propio" : "quitar_error" });
+  if (error) done(ADMINS, { error: error.code === "P0001" ? "quitar_propio" : error.code === "P0003" ? "quitar_ultimo" : "quitar_error" });
   done(ADMINS, { ok: "quitado" });
 }

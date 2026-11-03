@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { done } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
 
@@ -19,11 +19,6 @@ function fields(formData: FormData): Record<string, string> {
   return out;
 }
 
-function done(path: string, result: { ok: string } | { error: string }): never {
-  revalidatePath(path);
-  const query = "ok" in result ? `ok=${result.ok}` : `error=${result.error}`;
-  redirect(`${path}?${query}`);
-}
 
 export async function savePlanAction(formData: FormData): Promise<void> {
   await requirePlatformAdmin();

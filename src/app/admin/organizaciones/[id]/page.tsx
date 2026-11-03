@@ -54,7 +54,7 @@ const MESSAGES: Record<string, string> = {
   desactivar_error: "No se pudo cambiar el estado de la organización.",
   baja: "Suscripción dada de baja. La cuenta queda en solo lectura y los datos se conservan.",
   confirmar_baja: "Marcá la confirmación para dar de baja la suscripción.",
-  baja_error: "No se pudo dar de baja: la suscripción ya está suspendida o dada de baja.",
+  baja_error: "No se pudo dar de baja: la suscripción ya está dada de baja o suspendida.",
   reactivada: "Cuenta reactivada hasta la fecha elegida.",
   reactivacion_fecha: "Elegí un último día activo desde hoy y dentro de los próximos dos años.",
   reactivacion_error: "No se pudo reactivar la cuenta.",
@@ -302,8 +302,10 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
               <CardHeader>
                 <CardTitle>Reactivar sin pago</CardTitle>
                 <CardDescription>
-                  Deja la suscripción activa desde hoy hasta el día que elijas (inclusive), sin registrar un pago. Sirve
-                  para una cuenta suspendida, vencida o dada de baja, o para extender una prueba.
+                  Deja la suscripción activa desde hoy hasta el día que elijas (inclusive), sin registrar un pago. Como
+                  con un pago, después de ese día corren los {sub.grace_days} días de gracia antes de que la cuenta
+                  pase a solo lectura. Sirve para una cuenta suspendida, vencida o dada de baja, o para extender una
+                  prueba.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -346,7 +348,8 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
               </Card>
             )}
 
-            {sub.status === "cancelled" ? null : (
+            {/* cancel_subscription only takes a live subscription (trial, active or past due). */}
+            {sub.status === "suspended" || sub.status === "cancelled" ? null : (
               <Card>
                 <CardHeader>
                   <CardTitle>Dar de baja la suscripción</CardTitle>

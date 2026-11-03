@@ -1,8 +1,8 @@
 "use server";
 
 import { revalidatePath, updateTag } from "next/cache";
-import { redirect } from "next/navigation";
 
+import { done } from "@/lib/action-result";
 import { createClient } from "@/lib/supabase/server";
 import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
 
@@ -12,10 +12,6 @@ import { requireOwnerAccess } from "./session";
 // Owner only. The organization always comes from the caller's membership, never from the form; the
 // RPCs check the owner role (and, to rename, a live account) again in the database.
 
-function done(path: string, result: { ok: string } | { error: string }): never {
-  revalidatePath(path);
-  redirect(`${path}?${"ok" in result ? `ok=${result.ok}` : `error=${result.error}`}`);
-}
 
 const ORG = "/panel/organizacion";
 const SUBSCRIPTION = "/panel/suscripcion";

@@ -7,8 +7,8 @@ import { AuditList } from "@/components/audit/audit-list";
 import { AppShell } from "@/components/shell/app-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { cursorFrom, listAuditEntries } from "@/modules/auditoria/queries";
+import { getOrganizationName } from "@/modules/organizaciones/queries";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
-import { getOrgBilling } from "@/modules/suscripciones/queries";
 
 export const metadata: Metadata = { title: "Actividad" };
 
@@ -17,9 +17,9 @@ async function ActivityContent({ searchParams }: Pick<PageProps<"/admin/activida
   const query = await searchParams;
   const parsedOrg = z.uuid().safeParse(query.org);
   const orgId = parsedOrg.success ? parsedOrg.data : null;
-  const [entries, billing] = await Promise.all([
+  const [entries, orgName] = await Promise.all([
     listAuditEntries(orgId, cursorFrom(query.antes)),
-    orgId ? getOrgBilling(orgId) : Promise.resolve(null),
+    orgId ? getOrganizationName(orgId) : Promise.resolve(null),
   ]);
   const base = orgId ? `/admin/actividad?org=${orgId}&` : "/admin/actividad?";
 
@@ -27,7 +27,7 @@ async function ActivityContent({ searchParams }: Pick<PageProps<"/admin/activida
     <AppShell title="Actividad">
       <Card>
         <CardHeader>
-          <CardTitle>{billing ? `Actividad de ${billing.org.name}` : "Actividad de la plataforma"}</CardTitle>
+          <CardTitle>{orgName ? `Actividad de ${orgName}` : "Actividad de la plataforma"}</CardTitle>
           <CardDescription>
             Cada alta, cambio, baja y consulta del administrador queda registrada con su autor. Lo más reciente, primero.
             {orgId ? (

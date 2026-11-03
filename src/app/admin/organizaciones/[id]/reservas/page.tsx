@@ -9,11 +9,11 @@ import { AppShell } from "@/components/shell/app-shell";
 import { Notice } from "@/components/shell/notice";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { logAdminAccess } from "@/modules/auditoria/queries";
+import { getOrganizationName } from "@/modules/organizaciones/queries";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
 import { formatDate, nights } from "@/modules/reservas/calendar";
 import { listOrgBookings } from "@/modules/reservas/queries";
 import { formatArs } from "@/modules/suscripciones/billing";
-import { getOrgBilling } from "@/modules/suscripciones/queries";
 
 export const metadata: Metadata = { title: "Reservas de la organización" };
 
@@ -23,14 +23,14 @@ async function BookingsContent({ params }: Pick<PageProps<"/admin/organizaciones
   await requirePlatformAdmin();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  const billing = await getOrgBilling(id);
-  if (!billing) notFound();
+  const orgName = await getOrganizationName(id);
+  if (orgName === null) notFound();
   // Every opening is audited before any data is read; if the audit row fails, nothing is shown.
   await logAdminAccess(id, "bookings");
   const bookings = await listOrgBookings(id, LIMIT);
 
   return (
-    <AppShell title={`Reservas · ${billing.org.name}`}>
+    <AppShell title={`Reservas · ${orgName}`}>
       <div className="grid gap-6">
         <Link href={`/admin/organizaciones/${id}`} className="text-sm underline underline-offset-4">
           ← Volver a la organización
