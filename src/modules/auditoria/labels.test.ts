@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { changedFields, describeAudit } from "./labels";
+import { actorLabel, changedFields, describeAudit } from "./labels";
 
 describe("describeAudit", () => {
   it("names an insert by the row's name", () => {
@@ -43,5 +43,15 @@ describe("changedFields", () => {
 
   it("returns nothing when the diff is not an update", () => {
     expect(changedFields({ new: { a: 1 } })).toEqual([]);
+  });
+});
+
+describe("actorLabel", () => {
+  it("names a team member, even one who left, and falls back for the platform and the system", () => {
+    expect(actorLabel({ actor: "Ana", actor_kind: "member" })).toBe("Ana");
+    expect(actorLabel({ actor: null, actor_kind: "member" })).toBe("un integrante");
+    expect(actorLabel({ actor: null, actor_kind: "platform" })).toBe("la plataforma");
+    expect(actorLabel({ actor: "Admin", actor_kind: "platform" })).toBe("Admin (plataforma)");
+    expect(actorLabel({ actor: null, actor_kind: "system" })).toBe("el sistema (tarea automática)");
   });
 });

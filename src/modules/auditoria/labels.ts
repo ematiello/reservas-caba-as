@@ -105,3 +105,13 @@ export function describeAudit(row: AuditRow): { title: string; detail: string | 
   }
   return { title, detail: subject(row.diff) };
 }
+
+/**
+ * Who acted, from audit_entries. The platform admin sees names everywhere; an owner sees the names
+ * of current and former team members, and "la plataforma" for platform admins.
+ */
+export function actorLabel(row: { actor: string | null; actor_kind: string }): string {
+  if (row.actor_kind === "system") return "el sistema (tarea automática)";
+  if (row.actor_kind === "platform") return row.actor ? `${row.actor} (plataforma)` : "la plataforma";
+  return row.actor ?? "un integrante";
+}

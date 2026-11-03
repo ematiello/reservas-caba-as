@@ -216,6 +216,18 @@ describe.skipIf(skipDb)("management (owner and platform admin)", () => {
       expect(data).toEqual([]);
     });
 
+    it("never lets two admins removing each other at the same time both succeed", async () => {
+      const [x, y] = await Promise.all([newUser("mgadmx"), newUser("mgadmy")]);
+      expect((await admin.from("platform_admins").insert([{ user_id: x.id }, { user_id: y.id }])).error).toBeNull();
+      const results = await Promise.all([
+        x.client.rpc("revoke_platform_admin", { p_user: y.id }),
+        y.client.rpc("revoke_platform_admin", { p_user: x.id }),
+      ]);
+      expect(results.filter((r) => r.error === null)).toHaveLength(1);
+      const { data } = await admin.from("platform_admins").select("user_id").in("user_id", [x.id, y.id]);
+      expect(data).toHaveLength(1);
+    });
+
     it("is closed to everyone else", async () => {
       const grant = await ownerA.client.rpc("grant_platform_admin", { p_email: ownerA.email });
       expect(grant.error?.code).toBe("42501");
@@ -273,6 +285,27 @@ describe.skipIf(skipDb)("management (owner and platform admin)", () => {
       }
       const all = await ownerA.client.rpc("audit_entries");
       expect(all.error?.code).toBe("42501");
+    });
+
+    it("never gives the owner a platform admin id, and labels those rows as the platform", async () => {
+      expect((await superadmin.client.rpc("log_admin_access", { p_org: orgA, p_area: "bookings" })).error).toBeNull();
+      const { data, error } = await ownerA.client.rpc("audit_entries", { p_org: orgA, p_limit: 200 });
+      expect(error).toBeNull();
+      const rows = data as { action: string; table_name: string; actor_id: string | null; actor: string | null; actor_kind: string; diff: unknown }[];
+      const view = rows.find((r) => r.action === "view");
+      expect(view).toMatchObject({ actor_id: null, actor: null, actor_kind: "platform" });
+      expect(JSON.stringify(rows)).not.toContain(superadmin.id);
+    });
+
+    it("keeps the name of a removed collaborator on their past actions", async () => {
+      const removed = await ownerA.client.from("memberships").delete().eq("org_id", orgA).eq("user_id", operatorA.id);
+      expect(removed.error).toBeNull();
+      const { data, error } = await ownerA.client.rpc("audit_entries", { p_org: orgA, p_limit: 200 });
+      expect(error).toBeNull();
+      const joined = (data as { actor_id: string | null; actor: string | null; actor_kind: string }[]).find(
+        (r) => r.actor_id === operatorA.id,
+      );
+      expect(joined).toMatchObject({ actor: "Test mgopera", actor_kind: "member" });
     });
 
     it("records each time the platform admin opens an organization's bookings or guests", async () => {

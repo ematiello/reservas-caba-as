@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { describeAudit } from "@/modules/auditoria/labels";
+import { actorLabel, describeAudit } from "@/modules/auditoria/labels";
 import { AUDIT_PAGE, type AuditEntry } from "@/modules/auditoria/queries";
 
 const when = new Intl.DateTimeFormat("es-AR", {
@@ -41,7 +41,7 @@ export function AuditList({
                 </p>
                 {detail ? <p className="break-words text-muted-foreground">{detail}</p> : null}
                 <p className="text-xs text-muted-foreground">
-                  Por {e.actor ?? (e.actor_id ? "Plataforma" : "el sistema (tarea automática)")}
+                  Por {actorLabel(e)}
                 </p>
               </div>
             </li>

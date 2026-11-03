@@ -1034,6 +1034,7 @@ export type Database = {
           action: string
           actor: string
           actor_id: string
+          actor_kind: string
           at: string
           diff: Json
           id: number
