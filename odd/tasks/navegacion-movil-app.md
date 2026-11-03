@@ -17,7 +17,7 @@ Objetivo: en móvil, barra de navegación inferior para todos los usuarios y sit
 | T2 | Componente `BottomNav` | S1, S2 | inline | hecho (typecheck, lint y ui-guards; la prueba de comportamiento es el e2e de T7) | ver `git log` |
 | T3 | Integración en `AppShell` (incluye zona segura superior de la cabecera) | S1, S2, S4 | inline | hecho (typecheck, lint; e2e en T7) | ver `git log` |
 | T4 | Integración en `(public)` y `auth` (con `Suspense` + `BottomNavFallback`) | S1, S2 | inline | hecho (build OK, `/` sigue estática; el primer build falló en `/[slug]` por `usePathname` sin Suspense) | ver `git log` |
-| T5 | `viewport`, `themeColor`, `appleWebApp`, zonas seguras | S3 | inline | pendiente | |
+| T5 | `viewport`, `themeColor`, `appleWebApp`, zonas seguras (las de cabeceras y pie ya entraron en T3/T4) | S3 | inline | hecho (typecheck, lint, ui-guards; API verificada en `node_modules/next/dist/docs`) | ver `git log` |
 | T6 | Manifest e íconos | S3 | inline | pendiente | |
 | T7 | e2e móvil + D33 + CLAUDE.md | S1-S4 | inline | pendiente | |
 
