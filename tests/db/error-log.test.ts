@@ -87,8 +87,28 @@ describe.skipIf(skipDb)("error log", () => {
       }
       expect(await rowOf("forged")).toBeNull();
     });
-  });
+    it("stops new browser fingerprints after 100 in an hour, but keeps counting the known ones", async () => {
+      const known = entry("flood-known", { p_source: "browser" });
+      expect((await admin.rpc("log_error", known)).error).toBeNull();
+      const rows = Array.from({ length: 100 }, (_, i) => ({
+        fingerprint: `${prefix}-flood-${i}`,
+        source: "browser",
+        message: `Flood ${i}`,
+      }));
+      fingerprints.push(...rows.map((r) => r.fingerprint));
+      expect((await admin.from("error_log").insert(rows)).error).toBeNull();
 
+      expect((await admin.rpc("log_error", entry("flood-new", { p_source: "browser" }))).error).toBeNull();
+      expect(await rowOf("flood-new")).toBeNull();
+
+      expect((await admin.rpc("log_error", known)).error).toBeNull();
+      expect(await rowOf("flood-known")).toMatchObject({ count: 2 });
+
+      // The server's own errors are never throttled by browser noise.
+      expect((await admin.rpc("log_error", entry("flood-server"))).error).toBeNull();
+      expect(await rowOf("flood-server")).not.toBeNull();
+    });
+  });
   describe("reading and triage", () => {
     it("shows the log to the platform admin only", async () => {
       const seen = await superadmin.client.from("error_log").select("fingerprint").eq("fingerprint", `${prefix}-grouped`);
