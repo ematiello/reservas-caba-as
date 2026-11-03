@@ -62,6 +62,8 @@ holidays (nacionales y por organización)
 **Auditoría**
 - `audit_log(id, org_id null, actor_id, action, table_name, record_id, diff jsonb, at)`: la llenan triggers en las tablas sensibles (`organizations`, `memberships`, `invitations`, `plans`, `platform_settings`, `platform_admins`, `subscriptions`, `subscription_payments`, `amenities`, `properties`, `unit_categories`, `units`, `bookings`, `holidays`, `rate_rules`, `length_discounts`, `booking_payments`). Es de solo inserción. Se lee con `audit_entries` (owner: su organización; Superadmin: todas) y cada vez que el Superadmin abre las reservas o los huéspedes de una organización, `log_admin_access` deja una fila `view`.
 
+- `error_log(id, fingerprint unique, source server|browser, severity, message, detail, route, digest, org_id null, user_id null, count, first_at, last_at, status open|resolved|ignored, resolved_by, resolved_at)`: errores agrupados por huella. Solo `log_error` (service_role) escribe; solo el Superadmin lee y cambia el estado con `set_error_status` (auditado). `purge_error_log` (pg_cron, domingos) borra resueltos e ignorados a los 90 días y cualquiera a los 180. Hay un tope de 100 huellas nuevas del navegador por hora.
+
 ## Funciones
 
 | Función | Tipo | Uso |
@@ -93,6 +95,7 @@ RLS está habilitada en **todas** las tablas de `public`.
 | `plans`, `amenities` | todos los autenticados (`plans` también `anon`, para la página de precios) | solo Superadmin |
 | `holidays` | nacionales: todos; propios: miembros de la organización, o Superadmin | nacionales: solo Superadmin; propios: `owner` o `admin` (`can_manage_org`) |
 | `audit_log` | `owner` de la organización, o Superadmin | sin políticas de escritura (solo triggers) |
+| `error_log` | Superadmin | sin políticas de escritura (solo `log_error` con `service_role`) |
 | **Público (`anon`)** | `properties`, `units`, `media`, `rate_rules`, `length_discounts`, `unit_categories`, `unit_amenities`, `amenities`: solo si `is_published` y `org_is_active`; `holidays` nacionales y los de organizaciones con una página pública. Disponibilidad y estado de la página solo por `public_availability` y `public_property_state` | nada |
 
 **Storage:** bucket `media` público para lectura, con ruta `{org_id}/{property_id}/...`. Para escribir hay que ser miembro con rol `owner` o `admin` de la organización que figura en el primer segmento de la ruta.
