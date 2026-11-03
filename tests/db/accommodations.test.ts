@@ -282,6 +282,20 @@ describe.skipIf(skipDb)("accommodations (Phase 3)", () => {
         .select();
       expect(insert.error?.code).toBe("RT002");
     });
+
+    it("refuses entries of pg_timezone_names that are not IANA zones the app can format", async () => {
+      const { data: prop } = await newProperty(ownerA.client, orgA);
+      for (const timezone of ["Factory", "posixrules", "posix/America/Cordoba", "right/UTC", "localtime"]) {
+        const bad = await ownerA.client.from("properties").update({ timezone }).eq("id", prop!.id).select();
+        expect(bad.error?.code, timezone).toBe("RT002");
+      }
+      for (const timezone of ["UTC", "Etc/GMT+3", "America/Argentina/Buenos_Aires"]) {
+        const ok = await ownerA.client.from("properties").update({ timezone }).eq("id", prop!.id).select("timezone");
+        expect(ok.error, timezone).toBeNull();
+        // The same value must be usable by Intl in the panel and the public page.
+        expect(() => new Intl.DateTimeFormat("es-AR", { timeZone: timezone })).not.toThrow();
+      }
+    });
   });
 
   describe("photo order", () => {
