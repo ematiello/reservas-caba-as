@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { AppShell } from "@/components/shell/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Notice } from "@/components/shell/notice";
+import { Notice, ownMessage } from "@/components/shell/notice";
 import { getTeam } from "@/modules/organizaciones/queries";
 import { requireOwnerAccess } from "@/modules/organizaciones/session";
 import {
@@ -37,8 +37,8 @@ async function TeamContent({ searchParams }: Pick<PageProps<"/panel/equipo">, "s
   const { org } = await requireOwnerAccess();
   const { members, invitations } = await getTeam(org.orgId);
   const { ok, error } = await searchParams;
-  const errorText = typeof error === "string" ? ERRORS[error] : undefined;
-  const okText = typeof ok === "string" ? MESSAGES[ok] : undefined;
+  const errorText = ownMessage(ERRORS, error);
+  const okText = ownMessage(MESSAGES, ok);
 
   return (
     <AppShell title={`Equipo · ${org.orgName}`}>
