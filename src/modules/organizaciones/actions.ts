@@ -7,6 +7,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 import { loginErrorMessage, registrationRedirect } from "./auth-feedback";
+import { parseEmailConfirmation } from "./email-confirmation";
 import { siteOrigin } from "./origin";
 import { safeNext } from "./redirect";
 import { completePendingRegistration } from "./registration";
@@ -110,6 +111,19 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   if (error) {
     return { error: loginErrorMessage(error), values: { email: raw.email } };
   }
+
+  const registration = await completePendingRegistration(supabase);
+  redirect(registrationRedirect(registration, safeNext(text(formData, "next"))));
+}
+
+// Second step of a token-hash confirmation link: verifying happens only on this POST.
+export async function confirmEmailAction(formData: FormData): Promise<void> {
+  const confirmation = parseEmailConfirmation(text(formData, "token_hash"), text(formData, "type"));
+  if (!confirmation) redirect("/auth/login?error=confirmacion");
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ type: confirmation.type, token_hash: confirmation.tokenHash });
+  if (error) redirect("/auth/login?error=confirmacion");
 
   const registration = await completePendingRegistration(supabase);
   redirect(registrationRedirect(registration, safeNext(text(formData, "next"))));
