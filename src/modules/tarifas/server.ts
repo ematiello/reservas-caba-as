@@ -1,6 +1,9 @@
 import "server-only";
 
+import type { SupabaseClient } from "@supabase/supabase-js";
+
 import { createAdminClient } from "@/lib/supabase/admin";
+import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 import type { ISODate } from "@/modules/reservas/calendar";
 
@@ -14,7 +17,14 @@ import { frozenPrice, RATE_RULE_COLUMNS, toRateRule } from "./rows";
 export type Stay = { unitId: string; checkIn: ISODate; checkOut: ISODate; guests: number };
 
 export async function quoteStay(orgId: string, stay: Stay): Promise<PricingResult> {
-  const supabase = await createClient();
+  return quoteWith(await createClient(), orgId, stay);
+}
+
+/**
+ * Prices a stay from the rules `supabase` can read: the member's session in the panel, or the
+ * anonymous client on the public page (RLS shows it only published properties of active accounts).
+ */
+export async function quoteWith(supabase: SupabaseClient<Database>, orgId: string, stay: Stay): Promise<PricingResult> {
   const { data: unit, error } = await supabase
     .from("units")
     .select("property_id, category_id, properties(weekend_days, deposit_pct)")

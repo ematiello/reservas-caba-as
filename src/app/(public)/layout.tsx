@@ -1,0 +1,48 @@
+import { Lato, Montserrat } from "next/font/google";
+import Link from "next/link";
+
+import { BrandLogo } from "@/components/brand/logo";
+
+// Public side of the platform (home and /{slug}): brand fonts and colors from "Identidad serrana".
+// The panel keeps its own neutral theme.
+const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat", display: "swap" });
+const lato = Lato({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-lato", display: "swap" });
+
+export default function PublicLayout({ children }: LayoutProps<"/">) {
+  return (
+    <div className={`brand ${montserrat.variable} ${lato.variable} flex min-h-full flex-1 flex-col`}>
+      <header className="border-b border-[var(--border)] bg-white/90">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
+          <Link href="/" aria-label="Reservas Traslasierra, inicio" className="rounded-md focus-visible:ring-2 focus-visible:ring-brand-olive focus-visible:outline-none">
+            <BrandLogo />
+          </Link>
+          <Link
+            href="/auth/registro"
+            className="font-display rounded-full bg-brand-green px-4 py-2 text-sm font-semibold text-white hover:bg-brand-green-deep focus-visible:ring-2 focus-visible:ring-brand-ochre focus-visible:ring-offset-2 focus-visible:outline-none"
+          >
+            Publicá tu alojamiento
+          </Link>
+        </div>
+      </header>
+      <main className="flex-1">{children}</main>
+      <footer className="bg-brand-green-deep text-white">
+        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 sm:grid-cols-[1fr_auto] sm:items-end">
+          <div className="grid gap-3">
+            <BrandLogo tone="light" />
+            <p className="font-display max-w-sm text-lg font-medium text-brand-sand">
+              Naturaleza, descanso y alojamientos con encanto.
+            </p>
+          </div>
+          <nav aria-label="Pie de página" className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-brand-sand">
+            <Link href="/auth/login" className="underline-offset-4 hover:underline">
+              Ingreso de propietarios
+            </Link>
+            <Link href="/auth/registro" className="underline-offset-4 hover:underline">
+              Publicá tu alojamiento
+            </Link>
+          </nav>
+        </div>
+      </footer>
+    </div>
+  );
+}
