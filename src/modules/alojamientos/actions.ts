@@ -194,7 +194,8 @@ export async function createUnitAction(formData: FormData): Promise<void> {
   const { error } = await supabase
     .from("units")
     .insert({ org_id: org.orgId, property_id: id, ...unitRow(parsed.data) });
-  if (error) done(propertyPath(id), { error: error.message.includes("unit limit reached") ? "limite_unidades" : "escritura" });
+  // RT001: plan unit cap (private.enforce_unit_cap).
+  if (error) done(propertyPath(id), { error: error.code === "RT001" ? "limite_unidades" : "escritura" });
   done(propertyPath(id), { ok: "unidad" });
 }
 
@@ -278,18 +279,13 @@ export async function registerMediaAction(input: z.input<typeof mediaInput>): Pr
   if (!isMediaPath(org.orgId, propertyId, storagePath)) return { error: "invalid" };
 
   const supabase = await createClient();
-  const { count } = await supabase
-    .from("media")
-    .select("id", { count: "exact", head: true })
-    .eq("org_id", org.orgId)
-    .eq("property_id", propertyId);
+  // The position (sort) is assigned by the database (private.assign_media_sort).
   const { error } = await supabase.from("media").insert({
     org_id: org.orgId,
     property_id: propertyId,
     unit_id: unitId,
     storage_path: storagePath,
     alt,
-    sort: count ?? 0,
   });
   if (error) {
     await removeMediaFiles(supabase, [storagePath], {

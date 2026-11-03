@@ -255,9 +255,27 @@ describe.skipIf(skipDb)("accommodations (Phase 3)", () => {
 
       const results = await Promise.all([1, 2, 3, 4].map((i) => newUnit(owner.client, org, prop!.id, { name: `U${i}` })));
       expect(results.filter((r) => r.error === null)).toHaveLength(2);
-      expect(results.find((r) => r.error)?.error?.message).toMatch(/unit limit reached/);
+      const refused = results.find((r) => r.error)?.error;
+      expect(refused?.message).toMatch(/unit limit reached/);
+      // A stable code of its own, so the app never matches the message text.
+      expect(refused?.code).toBe("RT001");
       const { count } = await admin.from("units").select("id", { count: "exact", head: true }).eq("org_id", org);
       expect(count).toBe(2);
+    });
+  });
+
+  describe("photo order", () => {
+    it("numbers photos of a property in arrival order, also under concurrent inserts", async () => {
+      const { data: prop } = await newProperty(ownerA.client, orgA);
+      const results = await Promise.all(
+        [1, 2, 3, 4].map((i) =>
+          // The sort sent by the client is ignored: the database assigns the next one.
+          ownerA.client.from("media").insert({ org_id: orgA, property_id: prop!.id, storage_path: `${orgA}/${prop!.id}/p${i}.jpg`, sort: 0 }),
+        ),
+      );
+      expect(results.map((r) => r.error)).toEqual([null, null, null, null]);
+      const { data } = await admin.from("media").select("sort").eq("property_id", prop!.id).order("sort");
+      expect(data!.map((m) => m.sort)).toEqual([0, 1, 2, 3]);
     });
   });
 

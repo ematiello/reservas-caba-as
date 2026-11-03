@@ -271,6 +271,17 @@ describe.skipIf(skipDb)("bookings (Phase 4)", () => {
       const kind = await ownerA.client.from("bookings").update({ kind: "block" }).eq("id", id).select();
       expect(kind.error?.message).toContain("immutable_field");
     });
+
+    it("a member cannot move a hold's expiry in the same write that changes its status", async () => {
+      const unit = await newUnit(ownerA.client, orgA, propA);
+      const { data: id } = await book(ownerA.client, { unit, from: "2030-07-24", to: "2030-07-26", status: "provisional" });
+      const { data: before } = await admin.from("bookings").select("expires_at").eq("id", id).single();
+      const far = new Date(Date.now() + 365 * 86_400_000).toISOString();
+      const update = await ownerA.client.from("bookings").update({ status: "cancelled", expires_at: far }).eq("id", id).select();
+      expect(update.error?.message).toContain("immutable_field");
+      const { data: after } = await admin.from("bookings").select("status, expires_at").eq("id", id).single();
+      expect(after).toEqual({ status: "provisional", expires_at: before!.expires_at });
+    });
   });
 
   describe("amounts", () => {
