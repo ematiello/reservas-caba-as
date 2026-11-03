@@ -14,8 +14,8 @@ Objetivo: tablas de plataforma y organización, funciones de control, registro/l
 ## Tasks
 - T1 (S1,S5,S8) Migración `20261031155239_organizations_and_access.sql`: enums, tablas, `invitations`, funciones en `private`, RPC, RLS, triggers de auditoría. Ruta: inline. HECHA: aplicada al proyecto dev; tipos regenerados.
 - T2 (S3,S4,S6,S8) Pruebas de BD primero: `tests/db/organizations-access.test.ts`. Ruta: inline. HECHA. RED: `PGRST202` función inexistente antes de la migración. GREEN: 22/22 (dos corridas), lint y typecheck OK.
-- T3 (S1,S6) Auth SSR: registro, login, logout (Zod + server actions) y creación de perfil/organización. Pendiente.
-- T4 (S2) Protección en servidor de `/panel` y `/admin`; pantalla para organización pendiente. Pendiente.
+- T3 (S1,S6) Auth SSR: registro, login, logout (Zod + server actions), `/auth/confirm`, alta de organización diferida hasta tener sesión. Ruta: inline. HECHA (código): 25 pruebas puras nuevas + 2 de perfiles, typecheck, lint y build OK. PENDIENTE: prueba manual/E2E del flujo real (depende de si el proyecto dev exige confirmación por email; se cierra en T7).
+- T4 (S2) Protección en servidor de `/panel` y `/admin`; pantallas sin negocio / pendiente / rechazado / activo. Ruta: inline. HECHA: `session.ts` (capa de acceso que cada página invoca), `panel-state.ts` (TDD, 6 pruebas), e2e `tests/e2e/access.spec.ts` (anónimo → login con `next`; sin contenido privado en el HTML; usuario común → 404 en `/admin`; Superadmin accede; flujo pendiente → aprobado; logout). Móvil 11/11, escritorio 11/11, Vitest 55/55, lint y typecheck OK.
 - T5 (S6) Superadmin: listar, aprobar y rechazar organizaciones. Pendiente.
 - T6 (S6,S8) Colaboradores: invitación por enlace, aceptación, cambio de rol y baja (solo `owner`). Pendiente.
 - T7 (S2) E2E, docs, `/security-review` y revisión 4R con verificador independiente. Pendiente.
@@ -25,5 +25,7 @@ Objetivo: tablas de plataforma y organización, funciones de control, registro/l
 - L2: Lecciones de la Fase 0 guardadas en memoria (`fase-0-lecciones-proceso`). Espejo en Engram pendiente: no hay herramientas de Engram disponibles en esta sesión.
 - L3: Decisión abierta antes de T6: cómo se invita a un colaborador (SMTP sin definir).
 - L6: Desvío respecto de `docs/03`: `memberships` no tiene política de INSERT; las altas pasan solo por `register_organization` y `accept_invitation` (el owner no puede agregar a un usuario sin su consentimiento). El owner puede cambiar rol/baja solo de `admin`/`operator`, nunca de un `owner`. Flaky corregido en la prueba de vencimiento (reloj local vs servidor).
+- L7: Registro: nombre del negocio y slug viajan en `user_metadata` del signUp; `register_organization` se llama cuando hay sesión (al registrarse si no hay confirmación por email; si no, en `/auth/confirm` o en el primer login). Si el slug ya existe queda sin organización: T4 debe ofrecer crear el negocio desde `/panel`. Se omitió React Hook Form: `useActionState` + Zod alcanza. `/panel` es un placeholder hasta T4.
+- L8: Con `cacheComponents` la sesión se lee detrás de `<Suspense>`, así que la redirección a login y el 404 de `/admin` llegan con la página ya en streaming (el contenido privado nunca se envía; verificado en e2e), no como un 307/404 de cabecera. El cliente de Supabase usa `Date.now()` al inicializar: `getAccess` llama `connection()` primero (sin eso, error por request en el log). `getAccess` filtra memberships por `user_id`: el Superadmin lee todas por RLS.
 - L5 (2026-10-31, usuario): "Sí, seed manual" → el primer Superadmin se crea con un INSERT manual en `platform_admins` (fuera de las migraciones).
 - L4 (2026-10-31, usuario): "Por enlace de invitacion por whatsapp" → S8; desbloquea T6. Registrada como D21.
