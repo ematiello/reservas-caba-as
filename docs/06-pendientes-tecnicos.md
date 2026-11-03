@@ -24,4 +24,7 @@ Seguimientos que dejaron las revisiones de las fases 1 a 3. Ninguno bloquea; se 
 | P18 | 1-3 | UI | Decidir el registro del español de la interfaz (hoy voseo: "Revisá", "Elegí") y si los formularios usan React Hook Form (hoy solo server actions + Zod; ver L7 de la Fase 1). | Abierto |
 | P20 | 4 | `tests/db/bookings.test.ts` (prueba de `anon`) | Pasaría también sin RLS: cualquier error cuenta como éxito. Conviene esperar el código exacto (permiso denegado) y probar contra filas que existan (revisión nativa, R3-001). | Abierto |
 | P21 | 4 | `bookings_guard` | Si la misma escritura cambia el estado y `expires_at`, un usuario puede mover el vencimiento (el bloqueo solo rige cuando el estado no cambia) (revisión nativa, R3-002). | Abierto |
+| P22 | 4 | `src/modules/reservas/calendar.ts` (`BookingStatus`) | Unión escrita a mano; derivarla de `Database["public"]["Enums"]` deja una sola fuente (hoy `tsc` igual detecta la diferencia en `getCalendar`) (`gga`). | Abierto |
+| P23 | 4 | `/panel/reservas/[id]` (`actionsFor`) | Repite las transiciones de `bookings_guard`; si divergen, el usuario ve un botón que termina en error "transicion" (la base decide) (`gga`). | Abierto |
+| P24 | 4 | `tests/db/bookings.test.ts:24` | `orgB` asignada y sin uso (aviso de ESLint). | Abierto |
 | P19 | 1-3 | Engram | El espejo en Engram de las bitácoras `odd/tasks` está pendiente: no hubo herramientas de Engram en estas sesiones. | Abierto |
