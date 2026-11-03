@@ -32,8 +32,7 @@ export const MESSAGES: Record<string, string> = {
     "No se pudo guardar. Si la cuenta está suspendida o vencida, el panel es de solo lectura; si no, intentá de nuevo.",
 };
 
-export const selectClass = "h-9 w-full rounded-md border bg-background px-2 text-sm";
-export const textareaClass = "min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm";
+export { selectClass, textareaClass } from "@/components/ui/native-controls";
 
 export function PhotoGrid({
   media,
@@ -57,7 +56,7 @@ export function PhotoGrid({
             src={publicMediaUrl(m.storage_path)}
             alt={m.alt || "Foto del alojamiento"}
             loading="lazy"
-            className="aspect-[4/3] w-full rounded-md border object-cover"
+            className="aspect-[4/3] w-full rounded-lg border object-cover"
           />
           {canEdit ? (
             <form action={deleteMediaAction}>

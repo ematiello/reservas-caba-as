@@ -59,7 +59,7 @@ async function SearchContent({ searchParams }: PageProps<"/buscar">) {
       />
 
       {!search ? (
-        <p role="alert" className="rounded-xl bg-brand-sand p-4 font-semibold text-[#9b2c1d]">
+        <p role="alert" className="rounded-xl bg-brand-sand p-4 font-semibold text-destructive">
           Revisá la búsqueda: las dos fechas o ninguna, el ingreso desde hoy, la salida después del ingreso (hasta 365
           noches) y de 1 a 50 huéspedes.
         </p>

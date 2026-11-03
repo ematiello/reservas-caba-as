@@ -1,16 +1,12 @@
-import { Lato, Montserrat } from "next/font/google";
 import Link from "next/link";
 
 import { BrandLogo } from "@/components/brand/logo";
 
-// Public side of the platform (home and /{slug}): brand fonts and colors from "Identidad serrana".
-// The panel keeps its own neutral theme.
-const montserrat = Montserrat({ subsets: ["latin"], variable: "--font-montserrat", display: "swap" });
-const lato = Lato({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-lato", display: "swap" });
-
+// Public side of the platform (home, search and /{slug}). Fonts and colors come from the root
+// layout and the global theme ("Identidad serrana"); the paper ground is the public one.
 export default function PublicLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className={`brand ${montserrat.variable} ${lato.variable} flex min-h-full flex-1 flex-col`}>
+    <div className="brand flex min-h-full flex-1 flex-col">
       <header className="border-b border-[var(--border)] bg-white/90">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link href="/" aria-label="Reservas Traslasierra, inicio" className="rounded-md focus-visible:ring-2 focus-visible:ring-brand-olive focus-visible:outline-none">

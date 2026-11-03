@@ -50,7 +50,7 @@ function formatInstant(iso: string, timeZone: string): string {
 }
 
 async function BookingContent({ params, searchParams }: PageProps<"/panel/reservas/[id]">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const [{ id }, query, { writable, canEdit }] = await Promise.all([params, searchParams, writeAccess(org)]);
   if (!z.uuid().safeParse(id).success) notFound();
   const [detail, payments] = await Promise.all([getBooking(org.orgId, id), listPayments(org.orgId, id)]);
@@ -65,7 +65,7 @@ async function BookingContent({ params, searchParams }: PageProps<"/panel/reserv
   const back = `/panel/reservas?${new URLSearchParams({ property: property.id, fecha: booking.check_in })}`;
 
   return (
-    <AppShell title={title} email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title={title}>
       <div className="grid gap-4">
         <Link href={back} className="text-sm underline underline-offset-4">
           ← Volver al calendario

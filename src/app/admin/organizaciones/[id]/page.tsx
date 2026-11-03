@@ -8,6 +8,7 @@ import { AppShell } from "@/components/shell/app-shell";
 import { messageFor, Notice } from "@/components/shell/notice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { selectClass } from "@/components/ui/native-controls";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
@@ -38,14 +39,13 @@ const MESSAGES: Record<string, string> = {
   suspension_error: "No se pudo suspender: la cuenta ya está suspendida o cancelada.",
 };
 
-const selectClass = "h-9 w-full rounded-md border bg-background px-2 text-sm";
 
 function pesos(cents: number) {
   return (cents / 100).toLocaleString("es-AR", { maximumFractionDigits: 2 });
 }
 
 async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organizaciones/[id]">, "params" | "searchParams">) {
-  const access = await requirePlatformAdmin();
+  await requirePlatformAdmin();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [billing, plans, query] = await Promise.all([getOrgBilling(id), listPlans(), searchParams]);
@@ -59,7 +59,7 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
   const discountKind = sub?.discount_pct ? "pct" : sub?.discount_cents ? "cents" : "none";
 
   return (
-    <AppShell title={org.name} email={access.user.email} showPanelLink showAdminLink>
+    <AppShell title={org.name}>
       <div className="grid gap-6">
         <Link href="/admin" className="text-sm underline underline-offset-4">
           ← Volver a administración

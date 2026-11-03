@@ -8,7 +8,7 @@ export function PropertyCard({ href, name, place, photo, note }: { href: string;
   return (
     <Link
       href={href}
-      className="group block overflow-hidden rounded-2xl bg-white shadow-[0_1px_0_#e3d6c4] ring-1 ring-[var(--border)] focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:outline-none"
+      className="group block overflow-hidden rounded-2xl bg-white shadow-[0_1px_0_var(--border)] ring-1 ring-[var(--border)] focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:outline-none"
     >
       <div className="aspect-[4/3] overflow-hidden bg-brand-sand">
         {photo ? (

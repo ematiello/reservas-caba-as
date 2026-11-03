@@ -26,7 +26,9 @@ export default defineConfig({
     command: "npm run build && npm start",
     env: { PORT: String(port) },
     url: `http://localhost:${port}`,
-    reuseExistingServer: !process.env.CI,
+    // Never test against whatever already listens on the port (it may be an old build): a busy port
+    // fails loudly. Set E2E_REUSE_SERVER=1 only for a server you just started from the current build.
+    reuseExistingServer: process.env.E2E_REUSE_SERVER === "1",
     timeout: 300_000,
   },
 });

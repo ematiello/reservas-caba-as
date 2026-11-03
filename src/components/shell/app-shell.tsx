@@ -1,44 +1,58 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand/logo";
 import { logoutAction } from "@/modules/organizaciones/actions";
+import { getAccess } from "@/modules/organizaciones/session";
 
-type AppShellProps = {
-  title: string;
-  email: string;
-  showAdminLink?: boolean;
-  showPanelLink?: boolean;
-  children: ReactNode;
-};
+import { shellNavigation } from "./nav";
+import { ShellNav } from "./shell-nav";
 
-export function AppShell({ title, email, showAdminLink, showPanelLink, children }: AppShellProps) {
+type AppShellProps = { title: string; children: ReactNode };
+
+// Frame of the private areas (owner panel and platform admin) with the "Reservas Traslasierra" brand.
+// The navigation only shows what the user can open; every page still authorizes itself.
+export async function AppShell({ title, children }: AppShellProps) {
+  const access = await getAccess();
+  const nav = shellNavigation(access);
+
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b">
-        <div className="mx-auto flex w-full max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-          <h1 className="text-lg font-semibold">{title}</h1>
-          <nav className="flex flex-wrap items-center gap-3 text-sm">
-            {showPanelLink ? (
-              <Link href="/panel" className="underline underline-offset-4">
-                Mi panel
-              </Link>
+      <header className="bg-brand-green-deep text-white">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2">
+          <Link
+            href={nav.home}
+            aria-label="Reservas Traslasierra, inicio del panel"
+            className="rounded-md focus-visible:ring-2 focus-visible:ring-brand-ochre focus-visible:outline-none"
+          >
+            <BrandLogo tone="light" />
+          </Link>
+          <div className="flex min-w-0 items-center gap-3 text-sm">
+            {access ? (
+              <span title={access.user.email} className="max-w-[9rem] truncate text-xs text-brand-sand/85 sm:max-w-none sm:text-sm">
+                {access.user.email}
+              </span>
             ) : null}
-            {showAdminLink ? (
-              <Link href="/admin" className="underline underline-offset-4">
-                Administración
-              </Link>
-            ) : null}
-            <span className="text-muted-foreground">{email}</span>
             <form action={logoutAction}>
-              <Button type="submit" variant="outline" size="sm">
+              <button
+                type="submit"
+                className="font-heading rounded-full border border-white/40 px-3.5 py-1.5 text-sm font-semibold text-white hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-ochre focus-visible:outline-none"
+              >
                 Salir
-              </Button>
+              </button>
             </form>
-          </nav>
+          </div>
         </div>
+        <ShellNav panel={nav.panel} admin={nav.admin} />
       </header>
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-8">{children}</main>
+
+      <div className="border-b bg-white">
+        <div className="mx-auto w-full max-w-6xl px-4 py-5">
+          <h1 className="font-heading text-2xl leading-tight font-bold text-brand-green-deep sm:text-3xl">{title}</h1>
+        </div>
+      </div>
+
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
     </div>
   );
 }

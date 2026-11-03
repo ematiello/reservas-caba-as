@@ -13,6 +13,8 @@ import {
 } from "@/modules/organizaciones/team-actions";
 
 import { InviteForm } from "./invite-form";
+import { selectClass } from "@/components/ui/native-controls";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Equipo" };
 
@@ -20,11 +22,11 @@ const ROLE_LABEL = { owner: "Propietario", admin: "Administrador", operator: "Op
 const date = new Intl.DateTimeFormat("es-AR", { dateStyle: "medium", timeZone: "America/Argentina/Buenos_Aires" });
 
 async function TeamContent() {
-  const { access, org } = await requireOwnerAccess();
+  const { org } = await requireOwnerAccess();
   const { members, invitations } = await getTeam(org.orgId);
 
   return (
-    <AppShell title={`Equipo · ${org.orgName}`} email={access.user.email} showPanelLink showAdminLink={access.isPlatformAdmin}>
+    <AppShell title={`Equipo · ${org.orgName}`}>
       <div className="grid gap-6">
         <Card>
           <CardHeader>
@@ -59,7 +61,7 @@ async function TeamContent() {
                           name="role"
                           defaultValue={member.role}
                           aria-label={`Rol de ${member.fullName}`}
-                          className="h-8 rounded-md border bg-background px-2 text-sm"
+                          className={cn(selectClass, "h-8 w-auto")}
                         >
                           <option value="admin">Administrador</option>
                           <option value="operator">Operador</option>

@@ -42,14 +42,14 @@ export function FormField({ name, label, hint, errors, ...props }: FormFieldProp
 export function FormBanner({ error, notice }: { error?: string; notice?: string }) {
   if (error) {
     return (
-      <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+      <p role="alert" className="rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
         {error}
       </p>
     );
   }
   if (notice) {
     return (
-      <p role="status" className="rounded-md border bg-muted p-3 text-sm">
+      <p role="status" className="rounded-xl border bg-muted p-3 text-sm">
         {notice}
       </p>
     );

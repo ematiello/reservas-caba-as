@@ -24,7 +24,7 @@ export const metadata: Metadata = { title: "Unidad" };
 type Props = PageProps<"/panel/alojamientos/[id]/unidades/[unitId]">;
 
 async function UnitContent({ params, searchParams }: Pick<Props, "params" | "searchParams">) {
-  const { access, org } = await requireActiveMembership();
+  const { org } = await requireActiveMembership();
   const { id, unitId } = await params;
   if (!z.uuid().safeParse(id).success || !z.uuid().safeParse(unitId).success) notFound();
   const [detail, query, { writable, canEdit }] = await Promise.all([
@@ -38,7 +38,7 @@ async function UnitContent({ params, searchParams }: Pick<Props, "params" | "sea
   const message = messageFor(query, MESSAGES);
 
   return (
-    <AppShell title={u.name} email={access.user.email} showAdminLink={access.isPlatformAdmin}>
+    <AppShell title={u.name}>
       <div className="grid gap-6">
         <Link href={`/panel/alojamientos/${property.id}`} className="text-sm underline underline-offset-4">
           ← {property.name}

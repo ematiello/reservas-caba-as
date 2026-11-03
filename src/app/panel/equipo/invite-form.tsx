@@ -6,6 +6,8 @@ import { FormBanner } from "@/components/auth/form-field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { createInvitationAction, type InviteState } from "@/modules/organizaciones/team-actions";
+import { selectClass } from "@/components/ui/native-controls";
+import { cn } from "@/lib/utils";
 
 const initial: InviteState = {};
 
@@ -38,7 +40,7 @@ export function InviteForm() {
             id="role"
             name="role"
             defaultValue="operator"
-            className="h-9 rounded-md border bg-background px-3 text-sm"
+            className={cn(selectClass, "w-auto")}
           >
             <option value="operator">Operador (calendario y reservas)</option>
             <option value="admin">Administrador</option>

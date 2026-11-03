@@ -16,7 +16,7 @@ export function SearchBar({ today, values }: { today?: string; values?: Partial<
       method="get"
       action="/buscar"
       role="search"
-      className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-[0_12px_32px_-18px_rgba(22,63,50,0.45)] ring-1 ring-[var(--border)] md:grid-cols-[minmax(0,1.6fr)_1fr_1fr_7rem_auto] md:items-end"
+      className="grid grid-cols-2 gap-3 rounded-2xl bg-white p-4 shadow-raised ring-1 ring-[var(--border)] md:grid-cols-[minmax(0,1.6fr)_1fr_1fr_7rem_auto] md:items-end"
     >
       <label className="col-span-2 grid gap-1 text-sm font-semibold md:col-span-1">
         ¿Dónde querés ir?
@@ -54,7 +54,7 @@ export function SearchBar({ today, values }: { today?: string; values?: Partial<
       </label>
       <button
         type="submit"
-        className="font-display inline-flex h-11 items-center self-end justify-center gap-2 rounded-full bg-brand-ochre px-6 font-semibold text-brand-slate hover:bg-[#d9913a] focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:outline-none"
+        className="font-display inline-flex h-11 items-center self-end justify-center gap-2 rounded-full bg-brand-ochre px-6 font-semibold text-brand-slate hover:bg-brand-ochre-deep focus-visible:ring-2 focus-visible:ring-brand-green focus-visible:ring-offset-2 focus-visible:outline-none"
       >
         <SearchIcon aria-hidden="true" className="size-5" strokeWidth={2} />
         Buscar
