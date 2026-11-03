@@ -50,8 +50,18 @@ export async function revokeInvitationAction(formData: FormData): Promise<void> 
   if (!id.success) return;
 
   const supabase = await createClient();
-  await supabase.from("invitations").update({ revoked_at: new Date().toISOString() }).eq("id", id.data);
+  const { data, error } = await supabase
+    .from("invitations")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("id", id.data)
+    .select("id");
+  finish(!error && data.length > 0, "revocada", "revocar");
+}
+
+// RLS hides rows instead of failing, so "no row changed" also counts as an error.
+function finish(ok: boolean, okCode: string, errorCode: string): never {
   revalidatePath("/panel/equipo");
+  redirect(ok ? `/panel/equipo?ok=${okCode}` : `/panel/equipo?error=${errorCode}`);
 }
 
 export async function changeMemberRoleAction(formData: FormData): Promise<void> {
@@ -61,8 +71,13 @@ export async function changeMemberRoleAction(formData: FormData): Promise<void> 
   if (!userId.success || !role.success) return;
 
   const supabase = await createClient();
-  await supabase.from("memberships").update({ role: role.data }).eq("org_id", org.orgId).eq("user_id", userId.data);
-  revalidatePath("/panel/equipo");
+  const { data, error } = await supabase
+    .from("memberships")
+    .update({ role: role.data })
+    .eq("org_id", org.orgId)
+    .eq("user_id", userId.data)
+    .select("user_id");
+  finish(!error && data.length > 0, "rol", "rol");
 }
 
 export async function removeMemberAction(formData: FormData): Promise<void> {
@@ -71,8 +86,13 @@ export async function removeMemberAction(formData: FormData): Promise<void> {
   if (!userId.success) return;
 
   const supabase = await createClient();
-  await supabase.from("memberships").delete().eq("org_id", org.orgId).eq("user_id", userId.data);
-  revalidatePath("/panel/equipo");
+  const { data, error } = await supabase
+    .from("memberships")
+    .delete()
+    .eq("org_id", org.orgId)
+    .eq("user_id", userId.data)
+    .select("user_id");
+  finish(!error && data.length > 0, "quitado", "quitar");
 }
 
 // Accepting is a POST from a signed-in user (never a GET), so a link preview cannot consume it.
