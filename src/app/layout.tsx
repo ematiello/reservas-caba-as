@@ -1,5 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Lato, Montserrat } from "next/font/google";
+
+import { BRAND_GREEN_DEEP } from "@/components/brand/colors";
+
 import "./globals.css";
 
 // Brand type from "Identidad serrana: Reservas Traslasierra" for the whole app (public pages,
@@ -13,6 +16,17 @@ export const metadata: Metadata = {
   title: "Reservas de alojamientos",
   description: "Gestión de reservas para cabañas, casas, departamentos y pequeños hoteles.",
   robots: { index: false, follow: false },
+  // Installed from the home screen it opens without browser chrome (see also app/manifest.ts).
+  appleWebApp: { capable: true, title: "Reservas Traslasierra", statusBarStyle: "default" },
+};
+
+// `viewportFit: "cover"` lets the page use the whole screen on phones with a notch; the shell
+// pads itself with env(safe-area-inset-*), so nothing ends up under it.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: BRAND_GREEN_DEEP,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

@@ -6,6 +6,7 @@ import { logoutAction } from "@/modules/organizaciones/actions";
 import { getAccess } from "@/modules/organizaciones/session";
 
 import { shellNavigation } from "./nav";
+import { ShellBottomNav } from "./shell-bottom-nav";
 import { ShellNav } from "./shell-nav";
 
 type AppShellProps = { title: string; children: ReactNode };
@@ -18,7 +19,7 @@ export async function AppShell({ title, children }: AppShellProps) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="bg-brand-green-deep text-white">
+      <header className="bg-brand-green-deep pt-[env(safe-area-inset-top)] text-white">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 pt-3 pb-2">
           <Link
             href={nav.home}
@@ -29,7 +30,7 @@ export async function AppShell({ title, children }: AppShellProps) {
           </Link>
           <div className="flex min-w-0 items-center gap-3 text-sm">
             {access ? (
-              <span title={access.user.email} className="max-w-[9rem] truncate text-xs text-brand-sand/85 sm:max-w-none sm:text-sm">
+              <span title={access.user.email} className="hidden max-w-[9rem] truncate text-xs text-brand-sand/85 sm:inline sm:max-w-none sm:text-sm">
                 {access.user.email}
               </span>
             ) : null}
@@ -52,7 +53,11 @@ export async function AppShell({ title, children }: AppShellProps) {
         </div>
       </div>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8">{children}</main>
+      {/* On phones the bottom bar (fixed, ~56px) would cover the end of the page without this padding. */}
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pt-8 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-8">
+        {children}
+      </main>
+      <ShellBottomNav panel={nav.panel} admin={nav.admin} />
     </div>
   );
 }
