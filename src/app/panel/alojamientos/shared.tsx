@@ -1,7 +1,8 @@
 import { Notice } from "@/components/shell/notice";
 import { Button } from "@/components/ui/button";
 import { deleteMediaAction } from "@/modules/alojamientos/actions";
-import { publicMediaUrl, type Media } from "@/modules/alojamientos/queries";
+import { publicMediaUrl } from "@/modules/alojamientos/media-url";
+import type { Media } from "@/modules/alojamientos/queries";
 
 export function ReadOnlyNotice() {
   return (

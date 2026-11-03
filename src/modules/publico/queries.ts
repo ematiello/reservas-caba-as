@@ -3,7 +3,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { createPublicClient } from "@/lib/supabase/public";
-import { publicMediaUrl } from "@/modules/alojamientos/queries";
+import { publicMediaUrl } from "@/modules/alojamientos/media-url";
 import type { Database } from "@/lib/supabase/database.types";
 import type { ISODate } from "@/modules/reservas/calendar";
 import { quoteWith } from "@/modules/tarifas/server";
