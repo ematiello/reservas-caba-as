@@ -7,12 +7,13 @@ import { isActive, resolveArea, type NavItem } from "./nav";
 
 // Section tabs of the private areas. The admin area and the owner panel each show their own tabs,
 // plus a link to switch to the other area when the user has both.
+// Tablet and desktop only: on phones the same items live in the bottom bar (ShellBottomNav).
 export function ShellNav({ panel, admin }: { panel: NavItem[] | null; admin: NavItem[] | null }) {
   const path = usePathname();
   const { items, label, other } = resolveArea(path, panel, admin);
 
   return (
-    <nav aria-label={label} className="mx-auto w-full max-w-6xl px-2">
+    <nav aria-label={label} className="mx-auto hidden w-full max-w-6xl px-2 md:block">
       <ul className="flex items-end gap-1 overflow-x-auto text-sm [scrollbar-width:none]">
         {items.map((item) => {
           const active = isActive(item, path);
