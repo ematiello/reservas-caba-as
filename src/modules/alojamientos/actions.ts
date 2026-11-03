@@ -166,6 +166,7 @@ export async function deleteCategoryAction(formData: FormData): Promise<void> {
     .from("unit_categories")
     .delete()
     .eq("org_id", org.orgId)
+    .eq("property_id", id)
     .eq("id", categoryId)
     .select("id");
   if (error || !data?.length) done(propertyPath(id), { error: "escritura" });
@@ -210,6 +211,7 @@ export async function updateUnitAction(formData: FormData): Promise<void> {
     .from("units")
     .update(unitRow(parsed.data))
     .eq("org_id", org.orgId)
+    .eq("property_id", propertyId)
     .eq("id", unitId)
     .select("id");
   if (error || !data?.length) done(unitPath(propertyId, unitId), { error: "escritura" });
@@ -222,10 +224,21 @@ export async function deleteUnitAction(formData: FormData): Promise<void> {
   const unitId = idFrom(formData, "unitId");
   const supabase = await createClient();
   // Read the files first: the rows go with the unit (cascade) and nothing would point to them after.
-  const files = await supabase.from("media").select("storage_path").eq("org_id", org.orgId).eq("unit_id", unitId);
+  const files = await supabase
+    .from("media")
+    .select("storage_path")
+    .eq("org_id", org.orgId)
+    .eq("property_id", propertyId)
+    .eq("unit_id", unitId);
   if (files.error) done(unitPath(propertyId, unitId), { error: "escritura" });
   const media = files.data;
-  const { data, error } = await supabase.from("units").delete().eq("org_id", org.orgId).eq("id", unitId).select("id");
+  const { data, error } = await supabase
+    .from("units")
+    .delete()
+    .eq("org_id", org.orgId)
+    .eq("property_id", propertyId)
+    .eq("id", unitId)
+    .select("id");
   if (error || !data?.length) done(unitPath(propertyId, unitId), { error: "escritura" });
   // Media rows go with the unit (cascade); remove their files too.
   await removeMediaFiles(supabase, media.map((m) => m.storage_path), {
