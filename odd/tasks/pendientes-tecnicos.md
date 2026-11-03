@@ -42,4 +42,5 @@ Objetivo: cerrar uno por uno los seguimientos de `docs/06-pendientes-tecnicos.md
 - L4: hallazgo nuevo P26 (deadlock `40P01` intermitente en altas concurrentes): resuelto en `c891f0e` con advisory lock por unidad en `bookings_guard` (migración `20261103112449`, aplicada a dev); prueba de concurrencia 6/6 y suite de BD 150/150.
 - L5: P7 necesita decisión: (a) aceptar el riesgo (UUID no adivinable) y documentarlo, o (b) bucket privado con URLs firmadas (rompe la caché de la portada estática y cambia la página pública).
 - L6 (2026-11-03): "a, documentalo" → P7 cerrado como riesgo aceptado, decisión D29 en `docs/05-decisiones.md`.
-- Siguiente: decisión de P18; e2e completo y revisión profunda antes de integrar la rama.
+- L7 (2026-11-03): "mantené el voseo" → D30. De P18 queda abierta la parte de React Hook Form.
+- Siguiente: decisión de RHF (P18); e2e completo y revisión profunda antes de integrar la rama.
