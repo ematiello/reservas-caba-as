@@ -58,7 +58,7 @@ No hay Docker, así que no se usa `supabase start`. El flujo es:
 
 - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_…`): públicas.
 - `SUPABASE_SECRET_KEY` (`sb_secret_…`): **solo servidor**, nunca con el prefijo `NEXT_PUBLIC_`. Reemplaza a la `service_role` heredada.
-- `NEXT_PUBLIC_SITE_URL`: para canonical, sitemap y Open Graph.
+- `NEXT_PUBLIC_SITE_URL`: para canonical, sitemap, Open Graph y los enlaces de confirmación e invitación. **Obligatoria en cualquier despliegue** (se fija al compilar): en producción la app no confía en el header `Host` y, sin la variable, crear una cuenta o una invitación falla (solo `localhost` queda exento, para el servidor local y los e2e).
 - `PORT` (lo define Hostinger) y `BIND_HOST` (opcional, por defecto `0.0.0.0`).
 - Pruebas de base de datos: claves del proyecto dev (nunca de producción).
 
