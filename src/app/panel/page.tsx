@@ -7,8 +7,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Notice } from "@/components/shell/notice";
 import type { OrgMembership } from "@/modules/organizaciones/panel-state";
+import { writeAccess } from "@/modules/organizaciones/access";
 import { requirePanelAccess } from "@/modules/organizaciones/session";
-import { isOrgAccessActive } from "@/modules/suscripciones/queries";
 
 import { CreateOrganizationForm } from "./create-organization-form";
 
@@ -64,7 +64,7 @@ async function PanelContent() {
 
 // Organization approved. Writes also need a live subscription (invariant 6): otherwise read-only.
 async function ActivePanel({ membership }: { membership: OrgMembership }) {
-  const writable = await isOrgAccessActive(membership.orgId);
+  const { writable } = await writeAccess(membership);
   const isOwner = membership.role === "owner";
   return (
     <div className="grid gap-4">
@@ -78,19 +78,24 @@ async function ActivePanel({ membership }: { membership: OrgMembership }) {
         <CardHeader>
           <CardTitle>{membership.orgName}</CardTitle>
           <CardDescription>
-            {writable ? "Tu cuenta está activa. " : ""}Próximamente: establecimientos y reservas.
+            {writable ? "Tu cuenta está activa. " : ""}Próximamente: reservas y calendario.
           </CardDescription>
         </CardHeader>
-        {isOwner ? (
-          <CardContent className="flex flex-wrap gap-3">
-            <Link href="/panel/equipo" className={buttonVariants({ variant: "outline" })}>
-              Gestionar equipo
-            </Link>
-            <Link href="/panel/suscripcion" className={buttonVariants({ variant: "outline" })}>
-              Suscripción
-            </Link>
-          </CardContent>
-        ) : null}
+        <CardContent className="flex flex-wrap gap-3">
+          <Link href="/panel/alojamientos" className={buttonVariants()}>
+            Alojamientos
+          </Link>
+          {isOwner ? (
+            <>
+              <Link href="/panel/equipo" className={buttonVariants({ variant: "outline" })}>
+                Gestionar equipo
+              </Link>
+              <Link href="/panel/suscripcion" className={buttonVariants({ variant: "outline" })}>
+                Suscripción
+              </Link>
+            </>
+          ) : null}
+        </CardContent>
       </Card>
     </div>
   );

@@ -84,6 +84,21 @@ export async function requireOwnerAccess(): Promise<{ access: Access; org: OrgMe
   return { access, org: state.membership };
 }
 
+// Any member of an approved organization (operators included: they read accommodations).
+// Writes are still checked per action and by RLS (owner/admin and a live subscription).
+export async function requireActiveMembership(): Promise<{ access: Access; org: OrgMembership }> {
+  const { access, state } = await requirePanelAccess();
+  if (state.kind !== "active") redirect("/panel");
+  return { access, org: state.membership };
+}
+
+// Owner or admin of an approved organization: who manages accommodations (docs/01).
+export async function requireManagerAccess(): Promise<{ access: Access; org: OrgMembership }> {
+  const { access, org } = await requireActiveMembership();
+  if (org.role !== "owner" && org.role !== "admin") redirect("/panel/alojamientos");
+  return { access, org };
+}
+
 // Superadmin area. A signed-in user who is not a platform admin gets a 404 so the route is not revealed.
 export async function requirePlatformAdmin(): Promise<Access> {
   const access = await requireUser("/admin");
