@@ -16,7 +16,7 @@ Objetivo: cerrar uno por uno los seguimientos de `docs/06-pendientes-tecnicos.md
 | T4 | P4 `/auth/confirm` consume token en GET | inline | hecho (prueba escrita junto al código, sin RED aislado) | 88e09ff |
 | T5 | P5 `NEXT_PUBLIC_SITE_URL` en producción | inline | hecho (RED→GREEN) | 80b41a3 |
 | T6 | P6 registro real por email | — | bloqueado: SMTP | |
-| T7 | P7 bucket `media` público | — | decisión del usuario | |
+| T7 | P7 bucket `media` público | inline | cerrado: riesgo aceptado (D29) | ver commit docs D29 |
 | T8 | P8–P10 archivos huérfanos en Storage | inline | hecho (P8 ya estaba; RED→GREEN en uploader) | 9d71424, ebba50a |
 | T9 | P11 `publicMediaUrl` sin URL | inline | hecho (RED→GREEN) | 6c697a8 |
 | T10 | P12 `sort` con subidas simultáneas | inline | hecho (RED→GREEN, BD dev) | d3d5dee |
@@ -41,4 +41,5 @@ Objetivo: cerrar uno por uno los seguimientos de `docs/06-pendientes-tecnicos.md
 - L3: la prueba de conformidad de P23 encontró que escribir el mismo estado es un no-op aceptado por la base; se excluye de la comparación.
 - L4: hallazgo nuevo P26 (deadlock `40P01` intermitente en altas concurrentes): resuelto en `c891f0e` con advisory lock por unidad en `bookings_guard` (migración `20261103112449`, aplicada a dev); prueba de concurrencia 6/6 y suite de BD 150/150.
 - L5: P7 necesita decisión: (a) aceptar el riesgo (UUID no adivinable) y documentarlo, o (b) bucket privado con URLs firmadas (rompe la caché de la portada estática y cambia la página pública).
-- Siguiente: decisión de P7 y P18; e2e completo antes de integrar la rama.
+- L6 (2026-11-03): "a, documentalo" → P7 cerrado como riesgo aceptado, decisión D29 en `docs/05-decisiones.md`.
+- Siguiente: decisión de P18; e2e completo y revisión profunda antes de integrar la rama.
