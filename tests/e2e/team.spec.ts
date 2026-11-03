@@ -98,9 +98,11 @@ test.describe("invitation links", () => {
       const { data } = await admin.from("memberships").select("role").eq("org_id", orgId).eq("user_id", invitee.id).single();
       return data?.role;
     }).toBe("admin");
+    await expect(page.getByText("Rol actualizado.")).toBeVisible();
 
     await page.getByRole("button", { name: "Quitar a Test teaminvitee" }).click();
     await expect(page.getByText("Integrantes (1)")).toBeVisible();
+    await expect(page.getByText("Integrante quitado.")).toBeVisible();
   });
 
   test("after being removed, the former collaborator loses access", async ({ page }) => {
