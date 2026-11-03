@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { AppShell } from "@/components/shell/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Notice, ownMessage } from "@/components/shell/notice";
 import { getTeam } from "@/modules/organizaciones/queries";
 import { requireOwnerAccess } from "@/modules/organizaciones/session";
 import {
@@ -21,13 +22,28 @@ export const metadata: Metadata = { title: "Equipo" };
 const ROLE_LABEL = { owner: "Propietario", admin: "Administrador", operator: "Operador" } as const;
 const date = new Intl.DateTimeFormat("es-AR", { dateStyle: "medium", timeZone: "America/Argentina/Buenos_Aires" });
 
-async function TeamContent() {
+const MESSAGES: Record<string, string> = {
+  rol: "Rol actualizado.",
+  quitado: "Integrante quitado.",
+  revocada: "Invitación revocada.",
+};
+const ERRORS: Record<string, string> = {
+  rol: "No pudimos cambiar el rol. Recargá la página e intentá de nuevo.",
+  quitar: "No pudimos quitar a la persona. Recargá la página e intentá de nuevo.",
+  revocar: "No pudimos revocar la invitación. Recargá la página e intentá de nuevo.",
+};
+
+async function TeamContent({ searchParams }: Pick<PageProps<"/panel/equipo">, "searchParams">) {
   const { org } = await requireOwnerAccess();
   const { members, invitations } = await getTeam(org.orgId);
+  const { ok, error } = await searchParams;
+  const errorText = ownMessage(ERRORS, error);
+  const okText = ownMessage(MESSAGES, ok);
 
   return (
     <AppShell title={`Equipo · ${org.orgName}`}>
       <div className="grid gap-6">
+        {errorText ? <Notice tone="error">{errorText}</Notice> : okText ? <Notice tone="success">{okText}</Notice> : null}
         <Card>
           <CardHeader>
             <CardTitle>Invitar a una persona</CardTitle>
@@ -115,10 +131,10 @@ async function TeamContent() {
   );
 }
 
-export default function TeamPage() {
+export default function TeamPage({ searchParams }: PageProps<"/panel/equipo">) {
   return (
     <Suspense fallback={<p className="p-4 text-sm text-muted-foreground">Cargando…</p>}>
-      <TeamContent />
+      <TeamContent searchParams={searchParams} />
     </Suspense>
   );
 }

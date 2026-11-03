@@ -13,14 +13,22 @@ export function Notice({ tone, children }: { tone: "success" | "error" | "warnin
   );
 }
 
+/**
+ * The message for a key taken from the URL, only when the map has it as its own property: a plain
+ * lookup with "__proto__" or "constructor" would hand React an object or a function.
+ */
+export function ownMessage(messages: Record<string, string>, key: unknown): string | undefined {
+  return typeof key === "string" && Object.hasOwn(messages, key) ? messages[key] : undefined;
+}
+
 /** Message for an ?ok= / ?error= code, or null when there is none. */
 export function messageFor(
   query: { ok?: string | string[]; error?: string | string[] },
   messages: Record<string, string>,
 ): { tone: "success" | "error"; text: string } | null {
-  const ok = typeof query.ok === "string" ? query.ok : undefined;
-  const error = typeof query.error === "string" ? query.error : undefined;
-  if (error) return { tone: "error", text: messages[error] ?? "No se pudo completar la operación." };
-  if (ok && messages[ok]) return { tone: "success", text: messages[ok] };
-  return null;
+  if (typeof query.error === "string" && query.error) {
+    return { tone: "error", text: ownMessage(messages, query.error) ?? "No se pudo completar la operación." };
+  }
+  const ok = ownMessage(messages, query.ok);
+  return ok ? { tone: "success", text: ok } : null;
 }

@@ -1,31 +1,34 @@
 # 06 — Pendientes técnicos
 
-Seguimientos que dejaron las revisiones de las fases 1 a 3. Ninguno bloquea; se revisan uno por uno. Al resolver uno, anotar el commit en la columna Estado. Las decisiones comerciales pendientes siguen en `05-decisiones.md`.
+Seguimientos que dejaron las revisiones. Al resolver uno, anotar el commit en la columna Estado. Las decisiones comerciales pendientes siguen en `05-decisiones.md`. Bitácora de la limpieza del 2026-11-03: `odd/tasks/pendientes-tecnicos.md`.
 
 | # | Fase | Dónde | Pendiente | Estado |
 |---|------|-------|-----------|--------|
-| P1 | 1 | `loginAction` | Todo error de inicio de sesión se muestra como "Email o contraseña incorrectos", también el límite de tasa de Supabase (429). Falta un mensaje propio. | Abierto |
-| P2 | 1 | `completePendingRegistration` | Devuelve `slug_taken` / `error` y quien lo llama lo ignora: el usuario no se entera (revisión B, R3-002). | Abierto |
-| P3 | 1 | `removeMemberAction`, `changeMemberRoleAction` | Ignoran el error de la base (revisión C, R3-001). | Abierto |
-| P4 | 1 | `/auth/confirm` | Consume el token en un GET: un escáner de enlaces del correo podría gastarlo (revisión B, R3-004). | Abierto |
-| P5 | 1 | Despliegue | Fijar `NEXT_PUBLIC_SITE_URL` en producción para no depender del header `Host` (R1-002 de B y C). | Abierto |
-| P6 | 1 | Manual | Probar el registro real por email (depende del SMTP, ver `05`). | Abierto |
-| P7 | 3 | Bucket `media` | Es público: las fotos de un establecimiento en borrador se ven con la URL exacta (lleva UUID). | Abierto |
-| P8 | 3 | Borrado de establecimiento | No borra sus archivos de Storage (unidades y fotos sí). | Abierto |
-| P9 | 3 | `deleteUnitAction`, `deleteMediaAction` | Ignoran el error de `storage.remove`: pueden quedar archivos huérfanos sin aviso. | Abierto |
-| P10 | 3 | Subida de fotos | Si `registerMediaAction` rechaza un archivo ya subido, el archivo queda huérfano en Storage; `uploadPhotos` descarta el detalle del error. | Abierto |
-| P11 | 3 | `publicMediaUrl` | Sin `NEXT_PUBLIC_SUPABASE_URL` arma `undefined/storage/...` en silencio. | Abierto |
-| P12 | 3 | `registerMediaAction` | El orden (`sort`) se calcula con un conteo previo: dos subidas simultáneas pueden repetirlo. | Abierto |
-| P13 | 3 | `createUnitAction` | Detecta el tope de unidades buscando el texto "unit limit reached" en el mensaje; conviene un código de error propio. | Abierto |
-| P14 | 3 | `updateUnitAction` | Filtra por organización y unidad, no por establecimiento (no filtra datos, pero es inconsistente con las demás acciones). | Abierto |
-| P15 | 3 | `properties.timezone` | No se valida como zona IANA (hoy la UI no lo edita). | Abierto |
-| P16 | 3 | Uploader | `crypto.randomUUID()` solo existe en contextos seguros: falla por HTTP en una IP de la red local. | Abierto |
-| P17 | 3 | Pruebas e2e | El servidor standalone a veces termina con código 127 sin dejar log, también con `node` directo. | Abierto |
-| P18 | 1-3 | UI | Decidir el registro del español de la interfaz (hoy voseo: "Revisá", "Elegí") y si los formularios usan React Hook Form (hoy solo server actions + Zod; ver L7 de la Fase 1). | Abierto |
-| P20 | 4 | `tests/db/bookings.test.ts` (prueba de `anon`) | Pasaría también sin RLS: cualquier error cuenta como éxito. Conviene esperar el código exacto (permiso denegado) y probar contra filas que existan (revisión nativa, R3-001). | Abierto |
-| P21 | 4 | `bookings_guard` | Si la misma escritura cambia el estado y `expires_at`, un usuario puede mover el vencimiento (el bloqueo solo rige cuando el estado no cambia) (revisión nativa, R3-002). | Abierto |
-| P22 | 4 | `src/modules/reservas/calendar.ts` (`BookingStatus`) | Unión escrita a mano; derivarla de `Database["public"]["Enums"]` deja una sola fuente (hoy `tsc` igual detecta la diferencia en `getCalendar`) (`gga`). | Abierto |
-| P23 | 4 | `/panel/reservas/[id]` (`actionsFor`) | Repite las transiciones de `bookings_guard`; si divergen, el usuario ve un botón que termina en error "transicion" (la base decide) (`gga`). | Abierto |
-| P24 | 4 | `tests/db/bookings.test.ts:24` | `orgB` asignada y sin uso (aviso de ESLint). | Abierto |
-| P25 | 1-5 | Índices | Advisor de rendimiento (INFO): varias FKs compuestas y `created_by`/`recorded_by` sin índice que las cubra (`bookings`, `booking_payments`, `rate_rules`, `length_discounts`, `invitations`, etc.). Evaluar con volumen real. | Abierto |
-| P19 | 1-3 | Engram | El espejo en Engram de las bitácoras `odd/tasks` está pendiente: no hubo herramientas de Engram en estas sesiones. | Abierto |
+| P1 | 1 | `loginAction` | Todo error de inicio de sesión se muestra como "Email o contraseña incorrectos", también el límite de tasa de Supabase (429). Falta un mensaje propio. | Resuelto `a232ae1` (`loginErrorMessage`) |
+| P2 | 1 | `completePendingRegistration` | Devuelve `slug_taken` / `error` y quien lo llama lo ignora: el usuario no se entera (revisión B, R3-002). | Resuelto `a232ae1`: redirige a `/panel?registro=…` con aviso y formulario para reintentar |
+| P3 | 1 | `removeMemberAction`, `changeMemberRoleAction` | Ignoran el error de la base (revisión C, R3-001). | Resuelto `1796e75` (también `revokeInvitationAction`; 0 filas por RLS cuenta como error) |
+| P4 | 1 | `/auth/confirm` | Consume el token en un GET: un escáner de enlaces del correo podría gastarlo (revisión B, R3-004). | Resuelto `88e09ff`: el enlace `token_hash` pasa por `/auth/confirmar` y se verifica con un POST. El enlace PKCE (`?code=`) sigue en el GET: sin la cookie del verificador un escáner no puede usarlo. Al configurar el SMTP, usar la plantilla con `token_hash` |
+| P5 | 1 | Despliegue | Fijar `NEXT_PUBLIC_SITE_URL` en producción para no depender del header `Host` (R1-002 de B y C). | Resuelto `80b41a3`: en producción es obligatoria (salvo `localhost`) y se valida; ver `02` |
+| P6 | 1 | Manual | Probar el registro real por email (depende del SMTP, ver `05`). | Bloqueado: SMTP sin definir |
+| P7 | 3 | Bucket `media` | Es público: las fotos de un establecimiento en borrador se ven con la URL exacta (lleva UUID). | Cerrado: riesgo aceptado y documentado (D29) |
+| P8 | 3 | Borrado de establecimiento | No borra sus archivos de Storage (unidades y fotos sí). | Ya resuelto antes (`deletePropertyAction` borra con el cliente admin); desde `ebba50a` una falla queda en `/admin/errores` |
+| P9 | 3 | `deleteUnitAction`, `deleteMediaAction` | Ignoran el error de `storage.remove`: pueden quedar archivos huérfanos sin aviso. | Resuelto `ebba50a` (`removeMediaFiles` registra las rutas huérfanas en `/admin/errores`) |
+| P10 | 3 | Subida de fotos | Si `registerMediaAction` rechaza un archivo ya subido, el archivo queda huérfano en Storage; `uploadPhotos` descarta el detalle del error. | Resuelto `9d71424` (el navegador descarta el archivo y muestra el paso que falló por foto) y `ebba50a` (servidor) |
+| P11 | 3 | `publicMediaUrl` | Sin `NEXT_PUBLIC_SUPABASE_URL` arma `undefined/storage/...` en silencio. | Resuelto `6c697a8` (falla con un error claro) |
+| P12 | 3 | `registerMediaAction` | El orden (`sort`) se calcula con un conteo previo: dos subidas simultáneas pueden repetirlo. | Resuelto `d3d5dee` (trigger `media_assign_sort` con bloqueo por establecimiento) |
+| P13 | 3 | `createUnitAction` | Detecta el tope de unidades buscando el texto "unit limit reached" en el mensaje; conviene un código de error propio. | Resuelto `d3d5dee` (SQLSTATE `RT001`) |
+| P14 | 3 | `updateUnitAction` | Filtra por organización y unidad, no por establecimiento (no filtra datos, pero es inconsistente con las demás acciones). | Resuelto `98d379a` (también borrar unidad y categoría) |
+| P15 | 3 | `properties.timezone` | No se valida como zona IANA (hoy la UI no lo edita). | Resuelto `9cf3aaf` (trigger, SQLSTATE `RT002`); desde la migración `20261103123400` solo acepta `UTC` o nombres Área/Lugar que `Intl` puede usar (rechaza `Factory`, `posix/...`, etc.) |
+| P16 | 3 | Uploader | `crypto.randomUUID()` solo existe en contextos seguros: falla por HTTP en una IP de la red local. | Resuelto `9d71424` (`randomFileId` con `getRandomValues`) |
+| P17 | 3 | Pruebas e2e | El servidor standalone a veces termina con código 127 sin dejar log, también con `node` directo. | Mitigado, no reproducido: causas vistas en Windows = `process.exit()` con un fetch abierto (el preflight usa `exitCode`) y el sistema matando procesos por memoria (2 workers por defecto). Reabrir si vuelve a pasar |
+| P18 | 1-3 | UI | Decidir el registro del español de la interfaz (hoy voseo: "Revisá", "Elegí") y si los formularios usan React Hook Form (hoy solo server actions + Zod; ver L7 de la Fase 1). | Cerrado: voseo (D30) y formularios sin React Hook Form (D31) |
+| P20 | 4 | `tests/db/bookings.test.ts` (prueba de `anon`) | Pasaría también sin RLS: cualquier error cuenta como éxito. Conviene esperar el código exacto (permiso denegado) y probar contra filas que existan (revisión nativa, R3-001). | Resuelto `794154f` (`42501` sobre filas reales) |
+| P21 | 4 | `bookings_guard` | Si la misma escritura cambia el estado y `expires_at`, un usuario puede mover el vencimiento (el bloqueo solo rige cuando el estado no cambia) (revisión nativa, R3-002). | Resuelto `d3d5dee` |
+| P22 | 4 | `src/modules/reservas/calendar.ts` (`BookingStatus`) | Unión escrita a mano; derivarla de `Database["public"]["Enums"]` deja una sola fuente (hoy `tsc` igual detecta la diferencia en `getCalendar`) (`gga`). | Resuelto `5d52851` |
+| P23 | 4 | `/panel/reservas/[id]` (`actionsFor`) | Repite las transiciones de `bookings_guard`; si divergen, el usuario ve un botón que termina en error "transicion" (la base decide) (`gga`). | Resuelto `5d52851` (`allowedTargets` + prueba de BD que compara cada combinación con la base) |
+| P24 | 4 | `tests/db/bookings.test.ts:24` | `orgB` asignada y sin uso (aviso de ESLint). | Resuelto `794154f` |
+| P25 | 1-5 | Índices | Advisor de rendimiento (INFO): varias FKs compuestas y `created_by`/`recorded_by` sin índice que las cubra (`bookings`, `booking_payments`, `rate_rules`, `length_discounts`, `invitations`, etc.). Evaluar con volumen real. | Evaluado 2026-11-03, sin cambios: las FKs compuestas ya tienen índice por su columna selectiva (`booking_id`, `guest_id`, `property_id`, `unit_id`); las de usuarios solo se recorren al borrar un usuario. Revisar con datos de producción |
+| P27 | 3 | `properties.timezone` | La app no traduce `RT002` (zona inválida) a un mensaje propio: hoy ninguna pantalla edita la zona, así que no se ve. Agregar el mensaje cuando exista ese campo en la UI (Judgment Day, juez A). | Abierto |
+| P28 | 1 | `resolveSiteOrigin` | Sin `NEXT_PUBLIC_SITE_URL`, en `localhost` interpola `x-forwarded-proto` sin validar (un valor como `http,https` arma un enlace roto). Solo afecta al entorno local (Judgment Day, juez B). | Abierto |
+| P19 | 1-3 | Engram | El espejo en Engram de las bitácoras `odd/tasks` está pendiente: no hubo herramientas de Engram en estas sesiones. | Abierto: herramientas de Engram no disponibles |
+| P26 | 4 | `create_booking` concurrente | En la prueba de 5 altas simultáneas, 1 de 4 corridas devolvió deadlock (`40P01`) en vez de superposición (`23P01`). El invariante se cumple (se guarda una sola), pero el usuario vería un error genérico. | Resuelto `c891f0e`: advisory lock por unidad en `bookings_guard`; 6/6 corridas en verde |

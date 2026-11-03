@@ -6,6 +6,8 @@ import { z } from "zod";
 
 import { createClient } from "@/lib/supabase/server";
 
+import { loginErrorMessage, registrationRedirect } from "./auth-feedback";
+import { parseEmailConfirmation } from "./email-confirmation";
 import { siteOrigin } from "./origin";
 import { safeNext } from "./redirect";
 import { completePendingRegistration } from "./registration";
@@ -56,8 +58,7 @@ export async function registerAction(_prev: FormState, formData: FormData): Prom
 
   if (data.session) {
     // Email confirmation is off: the session exists, so the organization is created now.
-    await completePendingRegistration(supabase);
-    redirect("/panel");
+    redirect(registrationRedirect(await completePendingRegistration(supabase), "/panel"));
   }
 
   // Same message whether the email is new or already registered (no account enumeration).
@@ -108,17 +109,24 @@ export async function loginAction(_prev: FormState, formData: FormData): Promise
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
-    const unconfirmed = error.code === "email_not_confirmed";
-    return {
-      error: unconfirmed
-        ? "Confirmá tu email antes de ingresar. Revisá tu bandeja de entrada."
-        : "Email o contraseña incorrectos.",
-      values: { email: raw.email },
-    };
+    return { error: loginErrorMessage(error), values: { email: raw.email } };
   }
 
-  await completePendingRegistration(supabase);
-  redirect(safeNext(text(formData, "next")));
+  const registration = await completePendingRegistration(supabase);
+  redirect(registrationRedirect(registration, safeNext(text(formData, "next"))));
+}
+
+// Second step of a token-hash confirmation link: verifying happens only on this POST.
+export async function confirmEmailAction(formData: FormData): Promise<void> {
+  const confirmation = parseEmailConfirmation(text(formData, "token_hash"), text(formData, "type"));
+  if (!confirmation) redirect("/auth/login?error=confirmacion");
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.verifyOtp({ type: confirmation.type, token_hash: confirmation.tokenHash });
+  if (error) redirect("/auth/login?error=confirmacion");
+
+  const registration = await completePendingRegistration(supabase);
+  redirect(registrationRedirect(registration, safeNext(text(formData, "next"))));
 }
 
 export async function createOrganizationAction(_prev: FormState, formData: FormData): Promise<FormState> {

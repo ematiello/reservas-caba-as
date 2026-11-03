@@ -1,6 +1,8 @@
 // Stays are local calendar dates ("YYYY-MM-DD") with an exclusive check-out: 10 → 13 occupies the
 // nights of the 10th, 11th and 12th. Date math runs in UTC so no time zone shifts a day.
 
+import type { Database } from "@/lib/supabase/database.types";
+
 export type ISODate = string;
 
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
@@ -75,7 +77,9 @@ export function viewRange(kind: ViewKind, anchor: ISODate): ViewRange {
   return { from, to, days, prev, next: to };
 }
 
-export type BookingStatus = "provisional" | "confirmed" | "checked_in" | "checked_out" | "cancelled" | "expired";
+// One source: the database enums (supabase gen types).
+export type BookingStatus = Database["public"]["Enums"]["booking_status"];
+export type BookingKind = Database["public"]["Enums"]["booking_kind"];
 
 export type GridBooking = {
   id: string;
@@ -84,7 +88,7 @@ export type GridBooking = {
   checkOut: ISODate;
   cleaningBufferDays: number;
   status: BookingStatus;
-  kind: "booking" | "block";
+  kind: BookingKind;
   expiresAt: string | null;
   label: string;
 };

@@ -255,9 +255,61 @@ describe.skipIf(skipDb)("accommodations (Phase 3)", () => {
 
       const results = await Promise.all([1, 2, 3, 4].map((i) => newUnit(owner.client, org, prop!.id, { name: `U${i}` })));
       expect(results.filter((r) => r.error === null)).toHaveLength(2);
-      expect(results.find((r) => r.error)?.error?.message).toMatch(/unit limit reached/);
+      const refused = results.find((r) => r.error)?.error;
+      expect(refused?.message).toMatch(/unit limit reached/);
+      // A stable code of its own, so the app never matches the message text.
+      expect(refused?.code).toBe("RT001");
       const { count } = await admin.from("units").select("id", { count: "exact", head: true }).eq("org_id", org);
       expect(count).toBe(2);
+    });
+  });
+
+  describe("time zone", () => {
+    it("accepts an IANA zone and refuses anything else, on insert and update", async () => {
+      const { data: prop } = await newProperty(ownerA.client, orgA);
+      const ok = await ownerA.client.from("properties").update({ timezone: "America/Argentina/Cordoba" }).eq("id", prop!.id).select("timezone");
+      expect(ok.error).toBeNull();
+      expect(ok.data).toEqual([{ timezone: "America/Argentina/Cordoba" }]);
+
+      const bad = await ownerA.client.from("properties").update({ timezone: "Marte/Olimpo" }).eq("id", prop!.id).select();
+      expect(bad.error?.code).toBe("RT002");
+      const { data: row } = await admin.from("properties").select("timezone").eq("id", prop!.id).single();
+      expect(row!.timezone).toBe("America/Argentina/Cordoba");
+
+      const insert = await ownerA.client
+        .from("properties")
+        .insert({ org_id: orgA, slug: uniqueSlug("tz"), name: "Zona mala", timezone: "GMT+99" })
+        .select();
+      expect(insert.error?.code).toBe("RT002");
+    });
+
+    it("refuses entries of pg_timezone_names that are not IANA zones the app can format", async () => {
+      const { data: prop } = await newProperty(ownerA.client, orgA);
+      for (const timezone of ["Factory", "posixrules", "posix/America/Cordoba", "right/UTC", "localtime"]) {
+        const bad = await ownerA.client.from("properties").update({ timezone }).eq("id", prop!.id).select();
+        expect(bad.error?.code, timezone).toBe("RT002");
+      }
+      for (const timezone of ["UTC", "Etc/GMT+3", "America/Argentina/Buenos_Aires"]) {
+        const ok = await ownerA.client.from("properties").update({ timezone }).eq("id", prop!.id).select("timezone");
+        expect(ok.error, timezone).toBeNull();
+        // The same value must be usable by Intl in the panel and the public page.
+        expect(() => new Intl.DateTimeFormat("es-AR", { timeZone: timezone })).not.toThrow();
+      }
+    });
+  });
+
+  describe("photo order", () => {
+    it("numbers photos of a property in arrival order, also under concurrent inserts", async () => {
+      const { data: prop } = await newProperty(ownerA.client, orgA);
+      const results = await Promise.all(
+        [1, 2, 3, 4].map((i) =>
+          // The sort sent by the client is ignored: the database assigns the next one.
+          ownerA.client.from("media").insert({ org_id: orgA, property_id: prop!.id, storage_path: `${orgA}/${prop!.id}/p${i}.jpg`, sort: 0 }),
+        ),
+      );
+      expect(results.map((r) => r.error)).toEqual([null, null, null, null]);
+      const { data } = await admin.from("media").select("sort").eq("property_id", prop!.id).order("sort");
+      expect(data!.map((m) => m.sort)).toEqual([0, 1, 2, 3]);
     });
   });
 

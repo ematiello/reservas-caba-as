@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { BookingStatus } from "../../src/modules/reservas/calendar";
+import { allowedTargets, MANUAL_TARGETS } from "../../src/modules/reservas/transitions";
+
 import { adminClient, anonClient, assertDbEnv, createTestUser, newToken, uniqueSlug, type TestUser } from "./helpers";
 
 // Phase 4: booking engine. Invariants 1 (no overlap under real concurrency), 2 (an expired
@@ -10,6 +13,8 @@ assertDbEnv();
 const skipDb = process.env.SKIP_DB_TESTS === "1";
 
 const OVERLAP = "23P01";
+// anon has no grant on bookings or guests: reads fail with "permission denied", not just empty.
+const EXPECT_ANON_READ = "42501";
 
 describe.skipIf(skipDb)("bookings (Phase 4)", () => {
   let admin: SupabaseClient;
@@ -21,7 +26,6 @@ describe.skipIf(skipDb)("bookings (Phase 4)", () => {
   let operatorA: TestUser;
   let ownerB: TestUser;
   let orgA: string;
-  let orgB: string;
   let propA: string;
 
   async function newUser(label: string) {
@@ -97,7 +101,8 @@ describe.skipIf(skipDb)("bookings (Phase 4)", () => {
     ]);
     await admin.from("platform_admins").insert({ user_id: superadmin.id });
     orgA = await newOrg(ownerA, "bka");
-    orgB = await newOrg(ownerB, "bkb");
+    // ownerB only needs to be a member of some other organization (isolation checks).
+    await newOrg(ownerB, "bkb");
 
     const { token, hash } = newToken();
     await ownerA.client.from("invitations").insert({ org_id: orgA, role: "operator", token_hash: hash, created_by: ownerA.id });
@@ -271,6 +276,58 @@ describe.skipIf(skipDb)("bookings (Phase 4)", () => {
       const kind = await ownerA.client.from("bookings").update({ kind: "block" }).eq("id", id).select();
       expect(kind.error?.message).toContain("immutable_field");
     });
+
+    it("the panel's transition table matches bookings_guard for every status, kind and target", async () => {
+      const unit = await newUnit(ownerA.client, orgA, propA);
+      const paths: Record<string, string[]> = {
+        provisional: [],
+        confirmed: [],
+        checked_in: ["checked_in"],
+        checked_out: ["checked_in", "checked_out"],
+        cancelled: ["cancelled"],
+      };
+      const mismatches: string[] = [];
+      let day = 0;
+      for (const kind of ["booking", "block"] as const) {
+        for (const [origin, steps] of Object.entries(paths)) {
+          if (kind === "block" && (origin === "provisional" || origin.startsWith("checked"))) continue;
+          // Writing the same status is a no-op, not a transition.
+          for (const target of MANUAL_TARGETS.filter((t) => t !== origin)) {
+            const from = new Date(Date.UTC(2031, 0, 1 + day * 3)).toISOString().slice(0, 10);
+            const to = new Date(Date.UTC(2031, 0, 3 + day * 3)).toISOString().slice(0, 10);
+            day += 1;
+            const created = await book(ownerA.client, {
+              unit,
+              from,
+              to,
+              kind,
+              status: origin === "provisional" ? "provisional" : "confirmed",
+            });
+            expect(created.error, `${kind} ${origin}`).toBeNull();
+            for (const step of steps) {
+              const moved = await admin.from("bookings").update({ status: step }).eq("id", created.data);
+              expect(moved.error, `${kind} ${origin} via ${step}`).toBeNull();
+            }
+            const attempt = await ownerA.client.from("bookings").update({ status: target }).eq("id", created.data).select("id");
+            const accepted = attempt.error === null && attempt.data?.length === 1;
+            const expected = allowedTargets(origin as BookingStatus, kind).includes(target);
+            if (accepted !== expected) mismatches.push(`${kind} ${origin} → ${target}: db ${accepted}, panel ${expected}`);
+          }
+        }
+      }
+      expect(mismatches).toEqual([]);
+    });
+
+    it("a member cannot move a hold's expiry in the same write that changes its status", async () => {
+      const unit = await newUnit(ownerA.client, orgA, propA);
+      const { data: id } = await book(ownerA.client, { unit, from: "2030-07-24", to: "2030-07-26", status: "provisional" });
+      const { data: before } = await admin.from("bookings").select("expires_at").eq("id", id).single();
+      const far = new Date(Date.now() + 365 * 86_400_000).toISOString();
+      const update = await ownerA.client.from("bookings").update({ status: "cancelled", expires_at: far }).eq("id", id).select();
+      expect(update.error?.message).toContain("immutable_field");
+      const { data: after } = await admin.from("bookings").select("status, expires_at").eq("id", id).single();
+      expect(after).toEqual({ status: "provisional", expires_at: before!.expires_at });
+    });
   });
 
   describe("amounts", () => {
@@ -418,10 +475,21 @@ describe.skipIf(skipDb)("bookings (Phase 4)", () => {
 
     it("anonymous visitors see no bookings or guests and cannot book", async () => {
       const anon = anonClient();
-      expect((await anon.from("bookings").select("id").limit(1)).data ?? []).toHaveLength(0);
-      expect((await anon.from("guests").select("id").limit(1)).data ?? []).toHaveLength(0);
+      // Real rows exist (checked with the service role), so an empty answer means RLS hid them.
       const unit = await newUnit(ownerA.client, orgA, propA);
-      expect((await book(anon, { unit, from: "2030-12-01", to: "2030-12-02" })).error).not.toBeNull();
+      const { data: id } = await book(ownerA.client, { unit, from: "2030-12-04", to: "2030-12-06", name: "Huésped Anon" });
+      const { data: stored } = await admin.from("bookings").select("id, guest_id").eq("id", id).single();
+      expect(stored?.guest_id).toBeTruthy();
+
+      const bookings = await anon.from("bookings").select("id").eq("id", id);
+      expect(bookings.error?.code ?? null, JSON.stringify(bookings)).toBe(EXPECT_ANON_READ);
+      expect(bookings.data ?? []).toEqual([]);
+      const guests = await anon.from("guests").select("id").eq("id", stored!.guest_id);
+      expect(guests.error?.code ?? null, JSON.stringify(guests)).toBe(EXPECT_ANON_READ);
+      expect(guests.data ?? []).toEqual([]);
+
+      const created = await book(anon, { unit, from: "2030-12-01", to: "2030-12-02" });
+      expect(created.error?.code, JSON.stringify(created.error)).toBe("42501");
     });
 
     it("every booking change is audited", async () => {

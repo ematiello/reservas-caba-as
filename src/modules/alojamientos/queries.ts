@@ -75,7 +75,3 @@ export async function getUnit(orgId: string, propertyId: string, unitId: string)
   };
 }
 
-export function publicMediaUrl(storagePath: string): string {
-  const base = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, "");
-  return `${base}/storage/v1/object/public/media/${storagePath}`;
-}
