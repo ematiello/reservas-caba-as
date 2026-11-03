@@ -264,6 +264,26 @@ describe.skipIf(skipDb)("accommodations (Phase 3)", () => {
     });
   });
 
+  describe("time zone", () => {
+    it("accepts an IANA zone and refuses anything else, on insert and update", async () => {
+      const { data: prop } = await newProperty(ownerA.client, orgA);
+      const ok = await ownerA.client.from("properties").update({ timezone: "America/Argentina/Cordoba" }).eq("id", prop!.id).select("timezone");
+      expect(ok.error).toBeNull();
+      expect(ok.data).toEqual([{ timezone: "America/Argentina/Cordoba" }]);
+
+      const bad = await ownerA.client.from("properties").update({ timezone: "Marte/Olimpo" }).eq("id", prop!.id).select();
+      expect(bad.error?.code).toBe("RT002");
+      const { data: row } = await admin.from("properties").select("timezone").eq("id", prop!.id).single();
+      expect(row!.timezone).toBe("America/Argentina/Cordoba");
+
+      const insert = await ownerA.client
+        .from("properties")
+        .insert({ org_id: orgA, slug: uniqueSlug("tz"), name: "Zona mala", timezone: "GMT+99" })
+        .select();
+      expect(insert.error?.code).toBe("RT002");
+    });
+  });
+
   describe("photo order", () => {
     it("numbers photos of a property in arrival order, also under concurrent inserts", async () => {
       const { data: prop } = await newProperty(ownerA.client, orgA);
