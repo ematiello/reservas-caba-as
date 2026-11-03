@@ -13,8 +13,8 @@ Objetivo: en móvil, barra de navegación inferior para todos los usuarios y sit
 
 | ID | Tarea | Specs | Ruta | Estado | Commit |
 |----|-------|-------|------|--------|--------|
-| T1 | Lógica pura: `splitBottomNav`, `publicNavigation`, íconos, `resolveArea` | S1, S2 | inline | pendiente | |
-| T2 | Componente `BottomNav` | S1, S2 | inline | pendiente | |
+| T1 | Lógica pura: `splitBottomNav`, `publicNavigation`, íconos, `resolveArea` | S1, S2 | inline | hecho (RED 10 fallos → GREEN 19/19) | 48324cd |
+| T2 | Componente `BottomNav` | S1, S2 | inline | hecho (typecheck, lint y ui-guards; la prueba de comportamiento es el e2e de T7) | ver `git log` |
 | T3 | Integración en `AppShell` | S1, S2, S4 | inline | pendiente | |
 | T4 | Integración en `(public)` y `auth` | S1, S2 | inline | pendiente | |
 | T5 | `viewport`, `themeColor`, `appleWebApp`, zonas seguras | S3 | inline | pendiente | |
