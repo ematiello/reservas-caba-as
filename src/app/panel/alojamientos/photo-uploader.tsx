@@ -7,9 +7,15 @@ import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/client";
 import { registerMediaAction } from "@/modules/alojamientos/actions";
 import { resizeImage } from "@/modules/alojamientos/image";
-import { uploadPhotos } from "@/modules/alojamientos/upload";
+import { randomFileId, uploadPhotos, type UploadStep } from "@/modules/alojamientos/upload";
 
 type Props = { orgId: string; propertyId: string; unitId?: string };
+
+const STEP_LABEL: Record<UploadStep, string> = {
+  resize: "no se pudo leer la imagen",
+  store: "falló la subida",
+  register: "no se pudo guardar",
+};
 
 // Resizes each photo in the browser, uploads it to Storage under {org}/{property}/ (the Storage
 // policies check that path), then registers it. Full-size originals never leave the device.
@@ -26,7 +32,7 @@ export function PhotoUploader({ orgId, propertyId, unitId }: Props) {
     setBusy(true);
     try {
       const supabase = createClient();
-      const { failed } = await uploadPhotos(
+      const { failures } = await uploadPhotos(
         files,
         { orgId, propertyId, unitId: unitId ?? null },
         {
@@ -39,11 +45,20 @@ export function PhotoUploader({ orgId, propertyId, unitId }: Props) {
             const result = await registerMediaAction({ propertyId, unitId: unitId ?? "", storagePath, alt: "" });
             if (result.error) throw new Error(result.error);
           },
-          newId: () => crypto.randomUUID(),
+          discard: async (path) => {
+            await supabase.storage.from("media").remove([path]);
+          },
+          newId: () => randomFileId(),
         },
         (current, total) => setStatus(`Subiendo ${current} de ${total}…`),
       );
-      setStatus(failed ? `No se pudieron subir ${failed} de ${files.length} fotos.` : "Fotos subidas.");
+      setStatus(
+        failures.length
+          ? `No se pudieron subir ${failures.length} de ${files.length} fotos: ${failures
+              .map((f) => `${f.name} (${STEP_LABEL[f.step]})`)
+              .join(", ")}.`
+          : "Fotos subidas.",
+      );
       router.refresh();
     } catch {
       setStatus("No se pudieron subir las fotos.");
