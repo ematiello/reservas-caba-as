@@ -14,6 +14,17 @@ if (!existsSync(server)) {
   process.exit(1);
 }
 
+// Server-only variables (SUPABASE_SECRET_KEY) are read at runtime, and server.js does not load .env
+// files. Load them like `next start` does; variables already set (e.g. Hostinger's panel) win.
+// Optional: a host without @next/env or without .env files just keeps its own environment.
+try {
+  // CommonJS module: from ESM its exports may sit on `default`.
+  const env = await import("@next/env");
+  (env.loadEnvConfig ?? env.default.loadEnvConfig)(root);
+} catch {
+  // Not available: rely on the process environment.
+}
+
 // server.js binds to $HOSTNAME, which shells and hosts often set to the machine name
 // (making the app unreachable on localhost). Bind explicitly; override with BIND_HOST.
 process.env.HOSTNAME = process.env.BIND_HOST ?? "0.0.0.0";

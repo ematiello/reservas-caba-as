@@ -15,7 +15,7 @@ function rule(partial: Partial<RateRule> & Pick<RateRule, "kind" | "priceCents">
     extraGuestCents: null,
     minNights: null,
     priority: null,
-    createdAt: `2030-01-01T00:00:${String(seq).padStart(2, "0")}Z`,
+    createdAt: new Date(Date.UTC(2030, 0, 1) + seq * 1000).toISOString(),
     ...partial,
   };
 }
@@ -164,6 +164,26 @@ describe("quote: edges", () => {
   it("a deposit of 0 % or 100 % is exact", () => {
     expect(quote(input({ depositPct: 0 }))).toMatchObject({ ok: true, quote: { depositCents: 0 } });
     expect(quote(input({ depositPct: 100 }))).toMatchObject({ ok: true, quote: { depositCents: 30_000_00 } });
+  });
+
+  it("compares creation times as instants, whatever their text format", () => {
+    // 00:45 at UTC-1 is 01:45 UTC: later than 01:00 UTC, although it sorts first as text.
+    const later = rule({ kind: "base", priceCents: 1, createdAt: "2030-01-01T00:45:00-01:00" });
+    const earlier = rule({ kind: "base", priceCents: 2, createdAt: "2030-01-01T01:00:00Z" });
+    expect(nightly(quote(input({ rules: [earlier, later] })))[0][1]).toBe(later.id);
+  });
+
+  it("a full tie (priority and creation time) does not depend on the order of the rules", () => {
+    const createdAt = "2030-01-01T00:00:00Z";
+    const a = rule({ kind: "base", priceCents: 1, createdAt, id: "a" });
+    const b = rule({ kind: "base", priceCents: 2, createdAt, id: "b" });
+    const first = nightly(quote(input({ rules: [a, b] })))[0][1];
+    expect(nightly(quote(input({ rules: [b, a] })))[0][1]).toBe(first);
+  });
+
+  it("rejects an empty or reversed stay", () => {
+    expect(quote(input({ checkOut: "2030-01-07" }))).toEqual({ ok: false, error: "invalid_stay" });
+    expect(quote(input({ checkOut: "2030-01-05" }))).toEqual({ ok: false, error: "invalid_stay" });
   });
 
   it("does not change its inputs", () => {

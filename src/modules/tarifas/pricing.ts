@@ -64,7 +64,8 @@ export type Quote = {
 export type PricingResult =
   | { ok: true; quote: Quote }
   | { ok: false; error: "no_rate"; dates: ISODate[] }
-  | { ok: false; error: "min_nights"; minNights: number };
+  | { ok: false; error: "min_nights"; minNights: number }
+  | { ok: false; error: "invalid_stay" };
 
 /** amount × pct / 100, rounded to the nearest cent (half up). */
 export function percentOf(amountCents: number, pct: number): number {
@@ -93,14 +94,20 @@ function applies(rule: RateRule, night: ISODate, input: PricingInput, holidays: 
 
 const priorityOf = (rule: RateRule) => rule.priority ?? DEFAULT_PRIORITY[rule.kind];
 
-// Highest priority first; on a tie, the most recently created.
+// Highest priority first; on a tie, the most recently created (as an instant, not as text); on a
+// full tie, the larger id, so the result never depends on the order the rules arrive in.
 function wins(a: RateRule, b: RateRule): boolean {
   const pa = priorityOf(a);
   const pb = priorityOf(b);
-  return pa !== pb ? pa > pb : a.createdAt > b.createdAt;
+  if (pa !== pb) return pa > pb;
+  const ta = Date.parse(a.createdAt);
+  const tb = Date.parse(b.createdAt);
+  if (ta !== tb) return ta > tb;
+  return a.id > b.id;
 }
 
 export function quote(input: PricingInput): PricingResult {
+  if (input.checkOut <= input.checkIn) return { ok: false, error: "invalid_stay" };
   const holidays = new Set(input.holidays);
   const nights: NightPrice[] = [];
   const missing: ISODate[] = [];

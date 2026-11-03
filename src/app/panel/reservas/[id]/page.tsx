@@ -5,7 +5,7 @@ import { Suspense } from "react";
 import { z } from "zod";
 
 import { AppShell } from "@/components/shell/app-shell";
-import { messageFor, Notice } from "@/components/shell/notice";
+import { Notice } from "@/components/shell/notice";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,12 @@ import { Label } from "@/components/ui/label";
 import { writeAccess } from "@/modules/organizaciones/access";
 import { requireActiveMembership } from "@/modules/organizaciones/session";
 import { moveBookingAction, setBookingStatusAction } from "@/modules/reservas/actions";
-import { formatDate, nights } from "@/modules/reservas/calendar";
+import { listPayments } from "@/modules/pagos/queries";
+import { formatDate, nights, todayIn } from "@/modules/reservas/calendar";
 import { getBooking } from "@/modules/reservas/queries";
 
-import { MESSAGES, ReadOnlyNotice, selectClass, STATUS_LABEL } from "../shared";
+import { bookingMessage, ReadOnlyNotice, selectClass, STATUS_LABEL } from "../shared";
+import { PriceAndPayments } from "./price-and-payments";
 
 export const metadata: Metadata = { title: "Reserva" };
 
@@ -49,13 +51,13 @@ function formatInstant(iso: string, timeZone: string): string {
 
 async function BookingContent({ params, searchParams }: PageProps<"/panel/reservas/[id]">) {
   const { access, org } = await requireActiveMembership();
-  const [{ id }, query, { writable }] = await Promise.all([params, searchParams, writeAccess(org)]);
+  const [{ id }, query, { writable, canEdit }] = await Promise.all([params, searchParams, writeAccess(org)]);
   if (!z.uuid().safeParse(id).success) notFound();
-  const detail = await getBooking(org.orgId, id);
+  const [detail, payments] = await Promise.all([getBooking(org.orgId, id), listPayments(org.orgId, id)]);
   if (!detail) notFound();
 
   const { booking, guest, property, unitName, units } = detail;
-  const message = messageFor(query, MESSAGES);
+  const message = bookingMessage(query);
   const isBlock = booking.kind === "block";
   const actions = writable ? actionsFor(booking.status, booking.kind) : [];
   const movable = writable && ["provisional", "confirmed", "checked_in"].includes(booking.status);
@@ -143,6 +145,17 @@ async function BookingContent({ params, searchParams }: PageProps<"/panel/reserv
             ) : null}
           </CardContent>
         </Card>
+
+        {!isBlock ? (
+          <PriceAndPayments
+            booking={booking}
+            payments={payments}
+            writable={writable}
+            canEdit={canEdit}
+            today={todayIn(property.timezone)}
+            timeZone={property.timezone}
+          />
+        ) : null}
 
         {movable ? (
           <Card>

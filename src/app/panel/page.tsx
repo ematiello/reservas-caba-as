@@ -85,6 +85,9 @@ async function ActivePanel({ membership }: { membership: OrgMembership }) {
           <Link href="/panel/reservas" className={buttonVariants()}>
             Reservas
           </Link>
+          <Link href="/panel/huespedes" className={buttonVariants({ variant: "outline" })}>
+            Huéspedes
+          </Link>
           <Link href="/panel/alojamientos" className={buttonVariants({ variant: "outline" })}>
             Alojamientos
           </Link>
