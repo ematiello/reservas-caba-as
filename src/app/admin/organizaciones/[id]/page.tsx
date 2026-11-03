@@ -6,12 +6,19 @@ import { z } from "zod";
 
 import { AppShell } from "@/components/shell/app-shell";
 import { messageFor, Notice } from "@/components/shell/notice";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { selectClass } from "@/components/ui/native-controls";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  adminCancelSubscriptionAction,
+  adminUpdateOrganizationAction,
+  reactivateSubscriptionAction,
+  setOrganizationDisabledAction,
+} from "@/modules/organizaciones/admin-actions";
 import { requirePlatformAdmin } from "@/modules/organizaciones/session";
+import { addDays } from "@/modules/reservas/calendar";
 import {
   recordPaymentAction,
   suspendSubscriptionAction,
@@ -23,7 +30,7 @@ import { formatDate, lastPaidDay, METHOD_LABEL, STATUS_LABEL, todayAr } from "@/
 import { getOrgBilling, listPlans } from "@/modules/suscripciones/queries";
 import { PAYMENT_METHODS } from "@/modules/suscripciones/schemas";
 
-export const metadata: Metadata = { title: "Suscripción de la organización" };
+export const metadata: Metadata = { title: "Organización" };
 
 const MESSAGES: Record<string, string> = {
   pago: "Pago registrado. El período se extendió.",
@@ -37,6 +44,20 @@ const MESSAGES: Record<string, string> = {
   descuento_invalido: "Revisá el descuento: porcentaje entre 0 y 100 o importe mayor que cero.",
   descuento_error: "No se pudo guardar el descuento.",
   suspension_error: "No se pudo suspender: la cuenta ya está suspendida o cancelada.",
+  organizacion: "Datos de la organización guardados.",
+  organizacion_invalida: "Revisá el nombre y la dirección pública (al menos 3 letras o números, sin palabras reservadas).",
+  direccion_en_uso: "Esa dirección pública ya está en uso. Elegí otra.",
+  organizacion_error: "No se pudieron guardar los datos de la organización.",
+  desactivada: "Organización desactivada: su panel queda en solo lectura y la página pública no está disponible.",
+  activada: "Organización activada de nuevo.",
+  confirmar_desactivar: "Marcá la confirmación para desactivar la organización.",
+  desactivar_error: "No se pudo cambiar el estado de la organización.",
+  baja: "Suscripción dada de baja. La cuenta queda en solo lectura y los datos se conservan.",
+  confirmar_baja: "Marcá la confirmación para dar de baja la suscripción.",
+  baja_error: "No se pudo dar de baja: la suscripción ya está dada de baja o suspendida.",
+  reactivada: "Cuenta reactivada hasta la fecha elegida.",
+  reactivacion_fecha: "Elegí un último día activo desde hoy y dentro de los próximos dos años.",
+  reactivacion_error: "No se pudo reactivar la cuenta.",
 };
 
 
@@ -65,6 +86,77 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
           ← Volver a administración
         </Link>
         {message ? <Notice tone={message.tone}>{message.text}</Notice> : null}
+        {org.disabled_at ? (
+          <Notice tone="error">
+            Organización desactivada desde el {formatDate(org.disabled_at.slice(0, 10))}: panel en solo lectura y página
+            pública no disponible. Registrar un pago no la vuelve a activar.
+          </Notice>
+        ) : null}
+
+        <nav aria-label="Operación de la organización" className="flex flex-wrap gap-2">
+          <Link href={`/admin/organizaciones/${org.id}/reservas`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Ver reservas
+          </Link>
+          <Link href={`/admin/organizaciones/${org.id}/huespedes`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Ver huéspedes
+          </Link>
+          <Link href={`/admin/actividad?org=${org.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Ver actividad
+          </Link>
+        </nav>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Datos de la organización</CardTitle>
+            <CardDescription>
+              Cambiar la dirección pública rompe los enlaces que ya se compartieron con la anterior.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={adminUpdateOrganizationAction} className="grid gap-3 sm:grid-cols-3 sm:items-end">
+              <input type="hidden" name="orgId" value={org.id} />
+              <div className="grid gap-1.5">
+                <Label htmlFor="orgName">Nombre</Label>
+                <Input id="orgName" name="orgName" defaultValue={org.name} maxLength={120} required />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="slug">Dirección pública</Label>
+                <Input id="slug" name="slug" defaultValue={org.slug} maxLength={40} required />
+              </div>
+              <Button type="submit">Guardar datos</Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{org.disabled_at ? "Activar organización" : "Desactivar organización"}</CardTitle>
+            <CardDescription>
+              {org.disabled_at
+                ? "Vuelve a habilitar el panel y la página pública según el estado de su suscripción."
+                : "Independiente del cobro: el panel queda en solo lectura, la página pública no disponible y los datos se conservan."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form action={setOrganizationDisabledAction} className="flex flex-wrap items-center gap-3">
+              <input type="hidden" name="orgId" value={org.id} />
+              <input type="hidden" name="disabled" value={org.disabled_at ? "false" : "true"} />
+              {org.disabled_at ? (
+                <Button type="submit">Activar</Button>
+              ) : (
+                <>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" name="confirm" required />
+                    Quiero desactivar esta organización
+                  </label>
+                  <Button type="submit" variant="destructive">
+                    Desactivar
+                  </Button>
+                </>
+              )}
+            </form>
+          </CardContent>
+        </Card>
 
         {!sub ? (
           <Notice tone="warning">Esta organización no tiene suscripción (todavía no fue aprobada).</Notice>
@@ -206,12 +298,43 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
               </CardContent>
             </Card>
 
+            <Card>
+              <CardHeader>
+                <CardTitle>Reactivar sin pago</CardTitle>
+                <CardDescription>
+                  Deja la suscripción activa desde hoy hasta el día que elijas (inclusive), sin registrar un pago. Como
+                  con un pago, después de ese día corren los {sub.grace_days} días de gracia antes de que la cuenta
+                  pase a solo lectura. Sirve para una cuenta suspendida, vencida o dada de baja, o para extender una
+                  prueba.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form action={reactivateSubscriptionAction} className="flex flex-wrap items-end gap-3">
+                  <input type="hidden" name="orgId" value={org.id} />
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="reactivateUntil">Último día activo</Label>
+                    <Input
+                      id="reactivateUntil"
+                      name="until"
+                      type="date"
+                      min={today}
+                      max={addDays(today, 730)}
+                      defaultValue={addDays(today, 30)}
+                      required
+                    />
+                  </div>
+                  <Button type="submit">Reactivar</Button>
+                </form>
+              </CardContent>
+            </Card>
+
             {sub.status === "suspended" || sub.status === "cancelled" ? null : (
               <Card>
                 <CardHeader>
                   <CardTitle>Suspender cuenta</CardTitle>
                   <CardDescription>
-                    El panel queda en solo lectura y los datos se conservan. Se reactiva al registrar un pago.
+                    El panel queda en solo lectura y los datos se conservan. Se reactiva al registrar un pago o con
+                    &quot;Reactivar sin pago&quot;.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -219,6 +342,31 @@ async function OrgContent({ params, searchParams }: Pick<PageProps<"/admin/organ
                     <input type="hidden" name="orgId" value={org.id} />
                     <Button type="submit" variant="destructive">
                       Suspender
+                    </Button>
+                  </form>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* cancel_subscription only takes a live subscription (trial, active or past due). */}
+            {sub.status === "suspended" || sub.status === "cancelled" ? null : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Dar de baja la suscripción</CardTitle>
+                  <CardDescription>
+                    La cuenta pasa a solo lectura y la página pública no está disponible. Los datos se conservan y se
+                    puede volver con &quot;Reactivar sin pago&quot; o registrando un pago.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form action={adminCancelSubscriptionAction} className="flex flex-wrap items-center gap-3">
+                    <input type="hidden" name="orgId" value={org.id} />
+                    <label className="flex items-center gap-2 text-sm">
+                      <input type="checkbox" name="confirm" required />
+                      Quiero dar de baja esta suscripción
+                    </label>
+                    <Button type="submit" variant="destructive">
+                      Dar de baja
                     </Button>
                   </form>
                 </CardContent>

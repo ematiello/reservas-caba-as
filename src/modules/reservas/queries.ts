@@ -121,3 +121,40 @@ export async function getBooking(orgId: string, bookingId: string): Promise<Book
     units,
   };
 }
+
+export type OrgBookingRow = {
+  id: string;
+  kind: Database["public"]["Enums"]["booking_kind"];
+  status: Database["public"]["Enums"]["booking_status"];
+  checkIn: ISODate;
+  checkOut: ISODate;
+  propertyName: string;
+  unitName: string;
+  guestName: string | null;
+  totalCents: number | null;
+  currency: string;
+};
+
+/** The latest stays and blocks of one organization, newest check-in first (platform admin view). */
+export async function listOrgBookings(orgId: string, limit = 100): Promise<OrgBookingRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bookings")
+    .select("id, kind, status, check_in, check_out, total_cents, currency, properties(name), units(name), guests(full_name)")
+    .eq("org_id", orgId)
+    .order("check_in", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error("Could not load the bookings");
+  return data.map((b) => ({
+    id: b.id,
+    kind: b.kind,
+    status: b.status,
+    checkIn: b.check_in,
+    checkOut: b.check_out,
+    propertyName: b.properties?.name ?? "",
+    unitName: b.units?.name ?? "",
+    guestName: b.guests?.full_name ?? null,
+    totalCents: b.total_cents,
+    currency: b.currency,
+  }));
+}

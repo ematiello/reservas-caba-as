@@ -251,6 +251,71 @@ export type Database = {
           },
         ]
       }
+      error_log: {
+        Row: {
+          count: number
+          detail: string | null
+          digest: string | null
+          fingerprint: string
+          first_at: string
+          id: number
+          last_at: string
+          message: string
+          org_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          route: string | null
+          severity: string
+          source: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          count?: number
+          detail?: string | null
+          digest?: string | null
+          fingerprint: string
+          first_at?: string
+          id?: never
+          last_at?: string
+          message: string
+          org_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          severity?: string
+          source: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          count?: number
+          detail?: string | null
+          digest?: string | null
+          fingerprint?: string
+          first_at?: string
+          id?: never
+          last_at?: string
+          message?: string
+          org_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          severity?: string
+          source?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "error_log_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       guests: {
         Row: {
           consent_at: string | null
@@ -298,17 +363,31 @@ export type Database = {
       holidays: {
         Row: {
           date: string
+          id: string
           name: string
+          org_id: string | null
         }
         Insert: {
           date: string
+          id?: string
           name: string
+          org_id?: string | null
         }
         Update: {
           date?: string
+          id?: string
           name?: string
+          org_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "holidays_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invitations: {
         Row: {
@@ -474,6 +553,8 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           created_at: string
+          disabled_at: string | null
+          disabled_by: string | null
           id: string
           name: string
           slug: string
@@ -483,6 +564,8 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
+          disabled_at?: string | null
+          disabled_by?: string | null
           id?: string
           name: string
           slug: string
@@ -492,6 +575,8 @@ export type Database = {
           approved_at?: string | null
           approved_by?: string | null
           created_at?: string
+          disabled_at?: string | null
+          disabled_by?: string | null
           id?: string
           name?: string
           slug?: string
@@ -1008,6 +1093,23 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      audit_entries: {
+        Args: { p_before?: number; p_limit?: number; p_org?: string }
+        Returns: {
+          action: string
+          actor: string
+          actor_id: string
+          actor_kind: string
+          at: string
+          diff: Json
+          id: number
+          org_id: string
+          org_name: string
+          record_id: string
+          table_name: string
+        }[]
+      }
+      cancel_subscription: { Args: { p_org: string }; Returns: undefined }
       create_booking: {
         Args: {
           p_check_in: string
@@ -1038,6 +1140,34 @@ export type Database = {
         Returns: string
       }
       expire_provisional_bookings: { Args: never; Returns: number }
+      grant_platform_admin: { Args: { p_email: string }; Returns: string }
+      list_platform_admins: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          user_id: string
+        }[]
+      }
+      log_admin_access: {
+        Args: { p_area: string; p_org: string }
+        Returns: undefined
+      }
+      log_error: {
+        Args: {
+          p_detail?: string
+          p_digest?: string
+          p_fingerprint: string
+          p_message: string
+          p_org?: string
+          p_route?: string
+          p_severity: string
+          p_source: string
+          p_user?: string
+        }
+        Returns: undefined
+      }
       org_access_active: { Args: { p_org: string }; Returns: boolean }
       public_availability: {
         Args: { p_from: string; p_slug: string; p_to: string }
@@ -1063,6 +1193,11 @@ export type Database = {
           slug: string
         }[]
       }
+      purge_error_log: { Args: never; Returns: number }
+      reactivate_subscription: {
+        Args: { p_org: string; p_until: string }
+        Returns: undefined
+      }
       record_subscription_payment: {
         Args: {
           p_amount_cents: number
@@ -1082,8 +1217,21 @@ export type Database = {
         Args: { p_approve: boolean; p_org: string; p_plan?: string }
         Returns: undefined
       }
+      revoke_platform_admin: { Args: { p_user: string }; Returns: undefined }
       run_subscription_lifecycle: { Args: { p_today?: string }; Returns: Json }
+      set_error_status: {
+        Args: { p_id: number; p_status: string }
+        Returns: undefined
+      }
+      set_organization_disabled: {
+        Args: { p_disabled: boolean; p_org: string }
+        Returns: undefined
+      }
       suspend_subscription: { Args: { p_org: string }; Returns: undefined }
+      update_organization: {
+        Args: { p_name: string; p_org: string; p_slug?: string }
+        Returns: undefined
+      }
     }
     Enums: {
       booking_kind: "booking" | "block"

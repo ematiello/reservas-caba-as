@@ -37,7 +37,13 @@ export async function quoteWith(supabase: SupabaseClient<Database>, orgId: strin
   const [rules, discounts, holidays] = await Promise.all([
     supabase.from("rate_rules").select(RATE_RULE_COLUMNS).eq("org_id", orgId).eq("property_id", unit.property_id).or(target),
     supabase.from("length_discounts").select("min_nights, pct").eq("org_id", orgId).eq("property_id", unit.property_id),
-    supabase.from("holidays").select("date").gte("date", stay.checkIn).lt("date", stay.checkOut),
+    // National holidays plus the organization's own (a member of two organizations sees both).
+    supabase
+      .from("holidays")
+      .select("date")
+      .or(`org_id.is.null,org_id.eq.${orgId}`)
+      .gte("date", stay.checkIn)
+      .lt("date", stay.checkOut),
   ]);
   if (rules.error || discounts.error || holidays.error) throw new Error("Could not load the rates");
 

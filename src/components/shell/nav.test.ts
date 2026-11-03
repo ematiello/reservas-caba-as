@@ -16,16 +16,28 @@ const labels = (items: { label: string }[] | null) => items?.map((i) => i.label)
 describe("shellNavigation", () => {
   it("gives the owner every panel tab and no admin tabs", () => {
     const nav = shellNavigation({ isPlatformAdmin: false, memberships: [member("owner")] });
-    expect(labels(nav.panel)).toEqual(["Inicio", "Reservas", "Huéspedes", "Alojamientos", "Equipo", "Suscripción"]);
+    expect(labels(nav.panel)).toEqual([
+      "Inicio",
+      "Reservas",
+      "Huéspedes",
+      "Alojamientos",
+      "Feriados",
+      "Equipo",
+      "Suscripción",
+      "Organización",
+    ]);
     expect(nav.admin).toBeNull();
     expect(nav.home).toBe("/panel");
   });
 
-  it("hides the owner-only tabs from admins and operators", () => {
-    for (const role of ["admin", "operator"] as const) {
-      const nav = shellNavigation({ isPlatformAdmin: false, memberships: [member(role)] });
-      expect(labels(nav.panel)).toEqual(["Inicio", "Reservas", "Huéspedes", "Alojamientos"]);
-    }
+  it("gives admins the holidays but not the owner-only tabs", () => {
+    const nav = shellNavigation({ isPlatformAdmin: false, memberships: [member("admin")] });
+    expect(labels(nav.panel)).toEqual(["Inicio", "Reservas", "Huéspedes", "Alojamientos", "Feriados"]);
+  });
+
+  it("gives operators only the daily work", () => {
+    const nav = shellNavigation({ isPlatformAdmin: false, memberships: [member("operator")] });
+    expect(labels(nav.panel)).toEqual(["Inicio", "Reservas", "Huéspedes", "Alojamientos"]);
   });
 
   it("shows only Inicio while the business is not approved", () => {
@@ -38,7 +50,7 @@ describe("shellNavigation", () => {
   it("sends a platform admin without a business to the admin area, with no panel tabs", () => {
     const nav = shellNavigation({ isPlatformAdmin: true, memberships: [] });
     expect(nav.panel).toBeNull();
-    expect(labels(nav.admin)).toEqual(["Organizaciones", "Planes y ajustes", "Feriados"]);
+    expect(labels(nav.admin)).toEqual(["Organizaciones", "Planes y ajustes", "Feriados", "Actividad", "Errores", "Administradores"]);
     expect(nav.home).toBe("/admin");
   });
 

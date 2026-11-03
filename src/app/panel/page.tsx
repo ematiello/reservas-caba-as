@@ -70,7 +70,7 @@ async function ActivePanel({ membership }: { membership: OrgMembership }) {
     <div className="grid gap-4">
       {writable ? null : (
         <Notice tone="warning">
-          La cuenta de «{membership.orgName}» está suspendida o vencida: el panel queda en solo lectura y los datos se
+          La cuenta de «{membership.orgName}» está suspendida, vencida, dada de baja o desactivada: el panel queda en solo lectura y los datos se
           conservan.{isOwner ? " Revisá el estado en Suscripción." : " Avisale al propietario."}
         </Notice>
       )}

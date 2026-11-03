@@ -4,6 +4,9 @@ import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { createAdminClient } from "@/lib/supabase/admin";
+import { done as finish } from "@/lib/action-result";
+import type { ActionResult } from "@/lib/action-result-url";
 import { createClient } from "@/lib/supabase/server";
 import { requireManagerAccess } from "@/modules/organizaciones/session";
 import { PUBLIC_PROPERTIES_TAG } from "@/modules/publico/tags";
@@ -24,11 +27,9 @@ function fields(formData: FormData): Record<string, string> {
   return out;
 }
 
-function done(path: string, result: { ok: string } | { error: string }): never {
-  revalidatePath(path);
-  // The public pages show this data from a cache: the owner sees their change there right away.
-  updateTag(PUBLIC_PROPERTIES_TAG);
-  redirect(`${path}?${"ok" in result ? `ok=${result.ok}` : `error=${result.error}`}`);
+// The public pages show this data from a cache: the owner sees their change there right away.
+function done(path: string, result: ActionResult): never {
+  return finish(path, result, { tags: [PUBLIC_PROPERTIES_TAG] });
 }
 
 const LIST = "/panel/alojamientos";
@@ -104,6 +105,31 @@ export async function setPropertyPublishedAction(formData: FormData): Promise<vo
   done(propertyPath(id), { ok: publish ? "publicado" : "despublicado" });
 }
 
+// Only an establishment without bookings or blocks can be deleted: bookings reference it without
+// cascade (they are history, never erased), so the database refuses with 23503 and the owner is told
+// to unpublish it instead. Rates, categories, units and photos go with it; the photo files too.
+export async function deletePropertyAction(formData: FormData): Promise<void> {
+  const { org } = await requireManagerAccess();
+  const id = idFrom(formData, "propertyId");
+  if (formData.get("confirm") !== "on") done(propertyPath(id), { error: "confirmar_borrado" });
+  const supabase = await createClient();
+  const photos = await supabase.from("media").select("storage_path").eq("org_id", org.orgId).eq("property_id", id);
+  if (photos.error) done(propertyPath(id), { error: "escritura" });
+  const { data, error } = await supabase.from("properties").delete().eq("org_id", org.orgId).eq("id", id).select("id");
+  if (error) done(propertyPath(id), { error: error.code === "23503" ? "establecimiento_con_reservas" : "escritura" });
+  if (!data?.length) done(propertyPath(id), { error: "escritura" });
+  // The storage policy needs the property to exist, so the files go after it with the server-only
+  // client, limited to the paths this session read from its own organization.
+  const paths = photos.data.map((m) => m.storage_path).filter((path) => path.startsWith(`${org.orgId}/${id}/`));
+  if (paths.length) {
+    const removed = await createAdminClient().storage.from("media").remove(paths);
+    // The property is already gone, so the owner still gets the success; the orphan files are logged
+    // with their paths so they can be removed by hand.
+    if (removed.error) console.error("Could not remove the photos of a deleted property", { paths, error: removed.error.message });
+  }
+  done(LIST, { ok: "establecimiento_borrado" });
+}
+
 export async function createCategoryAction(formData: FormData): Promise<void> {
   const { org } = await requireManagerAccess();
   const id = idFrom(formData, "propertyId");
@@ -115,6 +141,24 @@ export async function createCategoryAction(formData: FormData): Promise<void> {
     .insert({ org_id: org.orgId, property_id: id, ...parsed.data });
   if (error) done(propertyPath(id), { error: "escritura" });
   done(propertyPath(id), { ok: "categoria" });
+}
+
+export async function updateCategoryAction(formData: FormData): Promise<void> {
+  const { org } = await requireManagerAccess();
+  const id = idFrom(formData, "propertyId");
+  const categoryId = idFrom(formData, "categoryId");
+  const parsed = categorySchema.safeParse(fields(formData));
+  if (!parsed.success) done(propertyPath(id), { error: "categoria_invalida" });
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("unit_categories")
+    .update(parsed.data)
+    .eq("org_id", org.orgId)
+    .eq("property_id", id)
+    .eq("id", categoryId)
+    .select("id");
+  if (error || !data?.length) done(propertyPath(id), { error: "escritura" });
+  done(propertyPath(id), { ok: "categoria_guardada" });
 }
 
 export async function deleteCategoryAction(formData: FormData): Promise<void> {

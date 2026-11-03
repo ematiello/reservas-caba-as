@@ -12,7 +12,8 @@ export default defineConfig(({ mode }) => ({
     include: ["src/**/*.test.ts", "tests/db/**/*.test.ts"],
     // DB tests run against the dev Supabase project; keys come from .env.local (never committed).
     env: loadEnv(mode, process.cwd(), ""),
-    testTimeout: 30_000,
-    hookTimeout: 60_000,
+    // Sign-ins wait out the Auth rate limit (tests/db/helpers.ts), which can take minutes.
+    testTimeout: 180_000,
+    hookTimeout: 300_000,
   },
 }));

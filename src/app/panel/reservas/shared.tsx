@@ -12,6 +12,7 @@ export const MESSAGES: Record<string, string> = {
   cancelled: "Cancelada: las fechas quedaron libres.",
   movida: "Reserva actualizada.",
   datos_invalidos: "Revisá los datos: fechas válidas con salida posterior al ingreso, nombre del huésped y de 1 a 50 huéspedes.",
+  reintentar: "Otra persona estaba reservando esa unidad al mismo tiempo. No se guardó nada: probá de nuevo.",
   superpuesta: "Esas fechas se superponen con otra reserva o bloqueo de la unidad (incluye los días de limpieza).",
   capacidad: "La cantidad de huéspedes supera la capacidad de la unidad.",
   sin_unidad: "No queda ninguna unidad libre de esa categoría para esas fechas.",
@@ -75,7 +76,7 @@ export function cellClass(status: BookingStatus, kind: "booking" | "block"): str
 export function ReadOnlyNotice() {
   return (
     <Notice tone="warning">
-      La cuenta está suspendida o vencida: el calendario queda en solo lectura y los datos se conservan.
+      La cuenta está suspendida, vencida, dada de baja o desactivada: el calendario queda en solo lectura y los datos se conservan.
     </Notice>
   );
 }

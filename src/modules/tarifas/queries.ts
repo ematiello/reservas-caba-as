@@ -42,9 +42,13 @@ export async function getRates(orgId: string, propertyId: string): Promise<Rates
   };
 }
 
-export async function listHolidays(): Promise<{ date: string; name: string }[]> {
+export type Holiday = { id: string; date: string; name: string };
+
+/** National holidays (orgId null) or the organization's own. */
+export async function listHolidays(orgId: string | null): Promise<Holiday[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("holidays").select("date, name").order("date");
+  const query = supabase.from("holidays").select("id, date, name");
+  const { data, error } = await (orgId ? query.eq("org_id", orgId) : query.is("org_id", null)).order("date");
   if (error) throw new Error("Could not load the holidays");
   return data;
 }

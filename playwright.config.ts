@@ -11,8 +11,14 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
+  // Four workers plus the standalone server ran this machine out of memory and the server died
+  // mid-run. Two is the default; E2E_WORKERS overrides it.
+  workers: Number(process.env.E2E_WORKERS) || 2,
   // Pages stream in behind Suspense and read from a remote Supabase project: 5 s is too tight.
   expect: { timeout: 15_000 },
+  // Setup hooks create several users against the remote project, which sometimes takes 15 s or more
+  // per request: 30 s per test or hook was not enough.
+  timeout: 60_000,
   use: {
     baseURL: `http://localhost:${port}`,
     trace: "on-first-retry",
@@ -23,7 +29,8 @@ export default defineConfig({
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
   ],
   webServer: {
-    command: "npm run build && npm start",
+    // The preflight stops the run in seconds when Supabase is unreachable, before the build.
+    command: "node scripts/e2e-preflight.mjs && npm run build && npm start",
     env: { PORT: String(port) },
     url: `http://localhost:${port}`,
     // Never test against whatever already listens on the port (it may be an old build): a busy port
