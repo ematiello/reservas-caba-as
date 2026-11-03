@@ -16,6 +16,9 @@ export default defineConfig({
   workers: Number(process.env.E2E_WORKERS) || 2,
   // Pages stream in behind Suspense and read from a remote Supabase project: 5 s is too tight.
   expect: { timeout: 15_000 },
+  // Setup hooks create several users against the remote project, which sometimes takes 15 s or more
+  // per request: 30 s per test or hook was not enough.
+  timeout: 60_000,
   use: {
     baseURL: `http://localhost:${port}`,
     trace: "on-first-retry",
