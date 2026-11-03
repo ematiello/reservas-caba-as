@@ -11,5 +11,8 @@ const BY_MESSAGE: Record<string, string> = {
 
 export function bookingErrorCode(error: { code?: string; message?: string }): string {
   if (error.code === "23P01") return "superpuesta";
+  // Concurrent writes on the same unit can abort one of them (deadlock or serialization failure):
+  // nothing was stored, and trying again gives the real answer.
+  if (error.code === "40P01" || error.code === "40001") return "reintentar";
   return BY_MESSAGE[error.message ?? ""] ?? "escritura";
 }

@@ -17,6 +17,11 @@ describe("bookingErrorCode", () => {
     expect(bookingErrorCode({ code: "P0001", message: "invalid_dates" })).toBe("fechas");
   });
 
+  it("asks to retry when two concurrent writes aborted each other (deadlock or serialization failure)", () => {
+    expect(bookingErrorCode({ code: "40P01", message: "deadlock detected" })).toBe("reintentar");
+    expect(bookingErrorCode({ code: "40001", message: "could not serialize access" })).toBe("reintentar");
+  });
+
   it("falls back to a generic write error", () => {
     expect(bookingErrorCode({ code: "42501", message: "new row violates row-level security policy" })).toBe("escritura");
     expect(bookingErrorCode({ code: "P0001", message: "unit_not_found" })).toBe("escritura");
