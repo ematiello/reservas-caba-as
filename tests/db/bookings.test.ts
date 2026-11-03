@@ -1,6 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import type { BookingStatus } from "../../src/modules/reservas/calendar";
+import { allowedTargets, MANUAL_TARGETS } from "../../src/modules/reservas/transitions";
+
 import { adminClient, anonClient, assertDbEnv, createTestUser, newToken, uniqueSlug, type TestUser } from "./helpers";
 
 // Phase 4: booking engine. Invariants 1 (no overlap under real concurrency), 2 (an expired
@@ -272,6 +275,47 @@ describe.skipIf(skipDb)("bookings (Phase 4)", () => {
       const { data: id } = await book(ownerA.client, { unit, from: "2030-07-20", to: "2030-07-22" });
       const kind = await ownerA.client.from("bookings").update({ kind: "block" }).eq("id", id).select();
       expect(kind.error?.message).toContain("immutable_field");
+    });
+
+    it("the panel's transition table matches bookings_guard for every status, kind and target", async () => {
+      const unit = await newUnit(ownerA.client, orgA, propA);
+      const paths: Record<string, string[]> = {
+        provisional: [],
+        confirmed: [],
+        checked_in: ["checked_in"],
+        checked_out: ["checked_in", "checked_out"],
+        cancelled: ["cancelled"],
+      };
+      const mismatches: string[] = [];
+      let day = 0;
+      for (const kind of ["booking", "block"] as const) {
+        for (const [origin, steps] of Object.entries(paths)) {
+          if (kind === "block" && (origin === "provisional" || origin.startsWith("checked"))) continue;
+          // Writing the same status is a no-op, not a transition.
+          for (const target of MANUAL_TARGETS.filter((t) => t !== origin)) {
+            const from = new Date(Date.UTC(2031, 0, 1 + day * 3)).toISOString().slice(0, 10);
+            const to = new Date(Date.UTC(2031, 0, 3 + day * 3)).toISOString().slice(0, 10);
+            day += 1;
+            const created = await book(ownerA.client, {
+              unit,
+              from,
+              to,
+              kind,
+              status: origin === "provisional" ? "provisional" : "confirmed",
+            });
+            expect(created.error, `${kind} ${origin}`).toBeNull();
+            for (const step of steps) {
+              const moved = await admin.from("bookings").update({ status: step }).eq("id", created.data);
+              expect(moved.error, `${kind} ${origin} via ${step}`).toBeNull();
+            }
+            const attempt = await ownerA.client.from("bookings").update({ status: target }).eq("id", created.data).select("id");
+            const accepted = attempt.error === null && attempt.data?.length === 1;
+            const expected = allowedTargets(origin as BookingStatus, kind).includes(target);
+            if (accepted !== expected) mismatches.push(`${kind} ${origin} → ${target}: db ${accepted}, panel ${expected}`);
+          }
+        }
+      }
+      expect(mismatches).toEqual([]);
     });
 
     it("a member cannot move a hold's expiry in the same write that changes its status", async () => {

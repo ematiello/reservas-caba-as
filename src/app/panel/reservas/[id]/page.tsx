@@ -14,7 +14,8 @@ import { writeAccess } from "@/modules/organizaciones/access";
 import { requireActiveMembership } from "@/modules/organizaciones/session";
 import { moveBookingAction, setBookingStatusAction } from "@/modules/reservas/actions";
 import { listPayments } from "@/modules/pagos/queries";
-import { formatDate, nights, todayIn } from "@/modules/reservas/calendar";
+import { formatDate, nights, todayIn, type BookingKind, type BookingStatus } from "@/modules/reservas/calendar";
+import { allowedTargets, type ManualTarget } from "@/modules/reservas/transitions";
 import { getBooking } from "@/modules/reservas/queries";
 
 import { bookingMessage, ReadOnlyNotice, selectClass, STATUS_LABEL } from "../shared";
@@ -22,27 +23,22 @@ import { PriceAndPayments } from "./price-and-payments";
 
 export const metadata: Metadata = { title: "Reserva" };
 
-type Action = { status: "confirmed" | "checked_in" | "checked_out" | "cancelled"; label: string; variant: "default" | "outline" };
+type Action = { status: ManualTarget; label: string; variant: "default" | "outline" };
 
-// Same transitions the database allows (bookings_guard); the database has the last word.
-function actionsFor(status: string, kind: string): Action[] {
-  if (kind === "block") return status === "confirmed" ? [{ status: "cancelled", label: "Levantar bloqueo", variant: "outline" }] : [];
-  switch (status) {
-    case "provisional":
-      return [
-        { status: "confirmed", label: "Confirmar", variant: "default" },
-        { status: "cancelled", label: "Cancelar", variant: "outline" },
-      ];
-    case "confirmed":
-      return [
-        { status: "checked_in", label: "Registrar check-in", variant: "default" },
-        { status: "cancelled", label: "Cancelar", variant: "outline" },
-      ];
-    case "checked_in":
-      return [{ status: "checked_out", label: "Registrar check-out", variant: "default" }];
-    default:
-      return [];
-  }
+const ACTION_LABEL: Record<ManualTarget, string> = {
+  confirmed: "Confirmar",
+  checked_in: "Registrar check-in",
+  checked_out: "Registrar check-out",
+  cancelled: "Cancelar",
+};
+
+// The allowed changes come from allowedTargets (pinned against bookings_guard by a DB test).
+function actionsFor(status: BookingStatus, kind: BookingKind): Action[] {
+  return allowedTargets(status, kind).map((target) => ({
+    status: target,
+    label: kind === "block" && target === "cancelled" ? "Levantar bloqueo" : ACTION_LABEL[target],
+    variant: target === "cancelled" ? "outline" : "default",
+  }));
 }
 
 function formatInstant(iso: string, timeZone: string): string {
