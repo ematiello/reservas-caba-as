@@ -53,6 +53,7 @@ export function shellNavigation(access: Pick<Access, "isPlatformAdmin" | "member
         { href: "/admin/planes", label: "Planes y ajustes" },
         { href: "/admin/feriados", label: "Feriados" },
         { href: "/admin/actividad", label: "Actividad" },
+        { href: "/admin/errores", label: "Errores" },
         { href: "/admin/administradores", label: "Administradores" },
       ]
     : null;

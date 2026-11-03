@@ -22,6 +22,7 @@ const NOUN: Record<string, string> = {
   bookings: "reserva o bloqueo",
   guests: "huésped",
   holidays: "feriado",
+  error_log: "error registrado",
   rate_rules: "tarifa",
   length_discounts: "descuento por estadía",
   booking_payments: "pago de huésped",

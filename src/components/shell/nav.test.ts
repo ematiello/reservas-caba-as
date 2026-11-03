@@ -50,7 +50,7 @@ describe("shellNavigation", () => {
   it("sends a platform admin without a business to the admin area, with no panel tabs", () => {
     const nav = shellNavigation({ isPlatformAdmin: true, memberships: [] });
     expect(nav.panel).toBeNull();
-    expect(labels(nav.admin)).toEqual(["Organizaciones", "Planes y ajustes", "Feriados", "Actividad", "Administradores"]);
+    expect(labels(nav.admin)).toEqual(["Organizaciones", "Planes y ajustes", "Feriados", "Actividad", "Errores", "Administradores"]);
     expect(nav.home).toBe("/admin");
   });
 
