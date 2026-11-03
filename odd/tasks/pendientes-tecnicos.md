@@ -25,7 +25,7 @@ Objetivo: cerrar uno por uno los seguimientos de `docs/06-pendientes-tecnicos.md
 | T13 | P15 validar zona IANA | inline | hecho (RED→GREEN, BD dev) | 9cf3aaf |
 | T14 | P16 `crypto.randomUUID` fuera de contexto seguro | inline | hecho (RED→GREEN) | 9d71424 |
 | T15 | P17 server standalone sale con 127 | inline | mitigado, no reproducido | — |
-| T16 | P18 registro del español / RHF | — | decisión del usuario | |
+| T16 | P18 registro del español / RHF | inline | cerrado: D30 y D31 | docs |
 | T17 | P20 prueba `anon` de bookings | inline | hecho | 794154f |
 | T18 | P21 `bookings_guard` y `expires_at` | inline | hecho (RED→GREEN, BD dev) | d3d5dee |
 | T19 | P22 `BookingStatus` desde los tipos generados | inline | hecho | 5d52851 |
@@ -43,4 +43,5 @@ Objetivo: cerrar uno por uno los seguimientos de `docs/06-pendientes-tecnicos.md
 - L5: P7 necesita decisión: (a) aceptar el riesgo (UUID no adivinable) y documentarlo, o (b) bucket privado con URLs firmadas (rompe la caché de la portada estática y cambia la página pública).
 - L6 (2026-11-03): "a, documentalo" → P7 cerrado como riesgo aceptado, decisión D29 en `docs/05-decisiones.md`.
 - L7 (2026-11-03): "mantené el voseo" → D30. De P18 queda abierta la parte de React Hook Form.
-- Siguiente: decisión de RHF (P18); e2e completo y revisión profunda antes de integrar la rama.
+- L8 (2026-11-03): "seguimos sin React Hook Form, actualizá CLAUDE.md" → D31; React Hook Form fuera del stack de `CLAUDE.md`. P18 cerrado.
+- Siguiente: e2e completo y revisión profunda antes de integrar la rama.
