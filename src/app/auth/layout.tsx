@@ -5,6 +5,7 @@ import { BrandLogo } from "@/components/brand/logo";
 import { Sierras } from "@/components/brand/sierras";
 import { BottomNav, BottomNavFallback } from "@/components/shell/bottom-nav";
 import { publicNavigation } from "@/components/shell/nav";
+import { SupportLink } from "@/components/shell/support-link";
 
 // Sign-in, sign-up and invitations: the brand's sierras behind a centered card.
 export default function AuthLayout({ children }: LayoutProps<"/auth">) {
@@ -22,6 +23,7 @@ export default function AuthLayout({ children }: LayoutProps<"/auth">) {
           <BrandLogo className="scale-125" />
         </Link>
         {children}
+        <SupportLink className="text-center text-sm text-muted-foreground" linkClassName="text-brand-green-deep" />
       </main>
       <Suspense fallback={<BottomNavFallback items={publicNavigation} label="Navegación principal" />}>
         <BottomNav items={publicNavigation} label="Navegación principal" />

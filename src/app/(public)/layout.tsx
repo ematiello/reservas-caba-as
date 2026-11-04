@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { BrandLogo } from "@/components/brand/logo";
 import { BottomNav, BottomNavFallback } from "@/components/shell/bottom-nav";
 import { publicNavigation } from "@/components/shell/nav";
+import { SupportLink } from "@/components/shell/support-link";
 
 // Public side of the platform (home, search and /{slug}). Fonts and colors come from the root
 // layout and the global theme ("Identidad serrana"); the paper ground is the public one.
@@ -41,6 +42,7 @@ export default function PublicLayout({ children }: LayoutProps<"/">) {
               Publicá tu alojamiento
             </Link>
           </nav>
+          <SupportLink className="text-sm text-brand-sand sm:col-span-2" linkClassName="text-white" />
         </div>
       </footer>
       <Suspense fallback={<BottomNavFallback items={publicNavigation} label="Navegación principal" />}>
